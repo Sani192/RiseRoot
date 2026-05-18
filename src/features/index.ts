@@ -1,8 +1,8 @@
-export { dailyPlansFeature } from "./daily-plans";
-export { mealsFeature } from "./meals";
-export { moodFeature } from "./mood";
-export { notesFeature } from "./notes";
-export { remindersFeature } from "./reminders";
-export { tasksFeature } from "./tasks";
-export { weightFeature } from "./weight";
-export { workoutsFeature } from "./workouts";
+export * from "./daily-plans";
+export * from "./meals";
+export * from "./mood";
+export * from "./notes";
+export * from "./reminders";
+export * from "./tasks";
+export * from "./weight";
+export * from "./workouts";
