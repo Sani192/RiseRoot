@@ -211,7 +211,7 @@ Considerations:
 
 ## Database Schema Planning
 
-Detailed table planning is maintained in [`docs/database-schema.md`](database-schema.md), including planned columns, keys, relationships, indexes, multi-user considerations, and future Row Level Security notes. Phase 1 does not create production migrations, but these schema concepts should guide future implementation.
+Detailed table planning is maintained in [`docs/database-schema.md`](database-schema.md), including planned columns, keys, relationships, indexes, multi-user considerations, and future Row Level Security notes. Planned API contracts are maintained in [`docs/api-contracts.md`](api-contracts.md), including endpoint purpose, request and response shapes, validation strategy, error conventions, and future authentication and user-scoping notes. Phase 1 does not create production migrations or production API routes, but these schema and contract concepts should guide future implementation.
 
 Core entities:
 
