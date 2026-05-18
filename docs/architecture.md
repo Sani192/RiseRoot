@@ -306,6 +306,8 @@ Planning priorities:
 - Document copy tone for supportive progress tracking.
 - Test whether users can complete core flows without training.
 
+Detailed UI/UX direction is maintained in [`docs/ui-ux.md`](ui-ux.md), including the dark-mode-first visual system, glassmorphism treatment, mobile layout rules, navigation patterns, interaction guidance, accessibility expectations, and explicit style exclusions.
+
 Design artifacts to create in future phases:
 
 - Low-fidelity wireframes.
@@ -367,6 +369,8 @@ docs/
   functional-requirements.md
   architecture.md
   database-schema.md
+  api-contracts.md
+  ui-ux.md
 ```
 
 ## Implementation Guardrails
