@@ -211,7 +211,7 @@ Considerations:
 
 ## Database Schema Planning
 
-Phase 1 does not create production migrations, but the following schema concepts should guide future implementation.
+Detailed table planning is maintained in [`docs/database-schema.md`](database-schema.md), including planned columns, keys, relationships, indexes, multi-user considerations, and future Row Level Security notes. Phase 1 does not create production migrations, but these schema concepts should guide future implementation.
 
 Core entities:
 
@@ -366,6 +366,7 @@ Documentation may remain in:
 docs/
   functional-requirements.md
   architecture.md
+  database-schema.md
 ```
 
 ## Implementation Guardrails
