@@ -97,6 +97,28 @@ Guidance:
 - Render.com environment groups can be used to share values across preview and production services.
 - Keep local, staging, and production Supabase projects separate when possible.
 
+## Supabase Database Migrations
+
+The initial schema lives in `supabase/migrations/` and is designed for the Supabase free tier. It creates the documented ownership-ready tables for daily plans, tasks, workouts, exercises, logs, notes, meals, and reminders. Authentication and RLS policies are not required for this first migration, but every user-owned table includes a `user_id` column so policies can be added later without reshaping the data model.
+
+Recommended free-tier setup:
+
+1. Create a Supabase project from the Supabase dashboard.
+2. Open **Project Settings → API** and copy the project URL and anon key into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. Apply migrations with one of these options:
+   - **Dashboard SQL editor:** open `supabase/migrations/20260518000000_create_core_schema.sql`, paste it into the Supabase SQL editor, and run it once against the target project.
+   - **Supabase CLI:** install or update the CLI, authenticate, link the project, and push migrations:
+
+     ```bash
+     supabase login
+     supabase link --project-ref <your-project-ref>
+     supabase db push
+     ```
+
+4. For early development without authentication, insert one internal row in `public.users` and reuse its `id` as the `user_id` on related records.
+5. Keep separate Supabase projects for local/staging and production when possible. Run migrations against staging before production, and avoid committing service role keys or database passwords.
+6. Before exposing real user data, enable Row Level Security and add policies that scope every user-owned table to the authenticated user's `user_id`.
+
 ## Architecture Overview
 
 Phase 1 defines the intended application architecture rather than implementing every layer completely.
