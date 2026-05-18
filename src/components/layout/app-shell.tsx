@@ -1,5 +1,63 @@
+"use client";
+
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  CalendarDays,
+  Dumbbell,
+  Home,
+  NotebookText,
+  Scale,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { href: "/", label: "Today", icon: Home },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/workout", label: "Workout", icon: Dumbbell },
+  { href: "/weight", label: "Weight", icon: Scale },
+  { href: "/notes", label: "Notes", icon: NotebookText },
+] as const;
+
+function isActiveRoute(pathname: string, href: string) {
+  return href === "/" ? pathname === href : pathname.startsWith(href);
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
-  return <main className="min-h-screen px-4 py-6 sm:px-6">{children}</main>;
+  const pathname = usePathname();
+
+  return (
+    <>
+      <main className="min-h-screen px-4 pb-28 pt-6 sm:px-6 lg:pb-8">
+        {children}
+      </main>
+      <nav
+        aria-label="Primary app navigation"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-white/50 bg-background/85 px-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-2xl shadow-black/10 backdrop-blur-xl lg:hidden"
+      >
+        <div className="mx-auto grid max-w-md grid-cols-5 gap-1 rounded-3xl border border-white/60 bg-white/65 p-1 shadow-sm shadow-black/5">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActiveRoute(pathname, item.href);
+
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-[0.7rem] font-medium text-muted-foreground transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                  active && "bg-primary text-primary-foreground shadow-sm",
+                )}
+                href={item.href}
+                key={item.href}
+              >
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
+  );
 }
