@@ -1,15 +1,24 @@
-export interface SupabaseProjectConfig {
-  url: string;
-  anonKey: string;
-}
-
-export function getSupabaseProjectConfig(): SupabaseProjectConfig | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    return null;
-  }
-
-  return { url, anonKey };
-}
+export {
+  SupabaseConfigurationError,
+  getBrowserSupabaseClient,
+  getMissingSupabaseEnvVars,
+  getSupabaseConfigurationError,
+  getSupabaseProjectConfig,
+  isSupabaseConfigured,
+  requireBrowserSupabaseClient,
+} from "./client";
+export type { SupabaseProjectConfig } from "./client";
+export {
+  dailyNoteQueries,
+  dailyPlanQueries,
+  dailyTaskQueries,
+  exerciseQueries,
+  mealSuggestionQueries,
+  moodLogQueries,
+  reminderQueries,
+  supabaseQueries,
+  userQueries,
+  weightLogQueries,
+  workoutQueries,
+} from "./queries";
+export type * from "./types";
