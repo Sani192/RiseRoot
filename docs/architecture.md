@@ -308,6 +308,8 @@ Planning priorities:
 
 Detailed UI/UX direction is maintained in [`docs/ui-ux.md`](ui-ux.md), including the dark-mode-first visual system, glassmorphism treatment, mobile layout rules, navigation patterns, interaction guidance, accessibility expectations, and explicit style exclusions.
 
+Phase 2 testing strategy is maintained in [`docs/testing-strategy.md`](testing-strategy.md), including unit testing for schedule generation, API route contract testing, component testing, accessibility expectations, iPhone browser QA, and the explicit deferral of full test implementation until Phase 2.
+
 Design artifacts to create in future phases:
 
 - Low-fidelity wireframes.
@@ -371,6 +373,7 @@ docs/
   database-schema.md
   api-contracts.md
   ui-ux.md
+  testing-strategy.md
 ```
 
 ## Implementation Guardrails
