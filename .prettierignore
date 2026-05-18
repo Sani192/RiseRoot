@@ -1,5 +1,25 @@
-.next
-node_modules
-out
-coverage
+# Dependencies
+node_modules/
+
+# Next.js and production builds
+.next/
+out/
+build/
+dist/
+
+# Coverage and test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Package manager artifacts
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files
+.env
+.env.*
+
+# Generated assets
 *.tsbuildinfo
