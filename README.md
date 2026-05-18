@@ -1,2 +1,212 @@
 # RiseRoot
-Daily Tracker
+
+RiseRoot is a Phase 1 product planning and application skeleton for a calm, mobile-first health routine tracker. The project is intended to help people define simple daily wellness routines, complete them consistently, and review progress without turning self-care into a noisy or stressful productivity system.
+
+> **Phase 1 status:** This repository currently contains planning and skeleton guidance only. It does **not** include the full application logic, production-ready data flows, authentication flows, or complete user-facing feature implementation.
+
+## Product Overview
+
+RiseRoot focuses on lightweight daily health routines such as hydration, movement, sleep preparation, mindfulness, medication reminders, or other personal wellness habits. The product should make it easy for users to:
+
+- Create a small set of meaningful health routines.
+- Track daily completion with minimal friction.
+- View gentle progress signals over time.
+- Recover from missed days without shame or punitive language.
+- Use the app comfortably on a phone as the primary device.
+
+The long-term goal is to become a trusted daily companion for sustainable wellness routines while remaining intentionally simple.
+
+## Product Philosophy
+
+RiseRoot should feel calming, minimal, and supportive. The product direction for Phase 1 and beyond is guided by these principles:
+
+- **Calming by default:** Use soft visual hierarchy, gentle copy, and reduced cognitive load.
+- **Minimal interactions:** Favor short flows, obvious actions, and few decisions per screen.
+- **Mobile-first:** Design for small screens before desktop layouts.
+- **Health without pressure:** Avoid guilt-driven streak mechanics or harsh failure states.
+- **Routine over optimization:** Help users repeat healthy actions rather than over-analyze performance.
+- **Accessibility and clarity:** Prefer readable typography, strong contrast, semantic structure, and predictable navigation.
+
+## Tech Stack
+
+The planned Phase 1 stack is:
+
+- **Next.js** for the application framework and routing.
+- **TypeScript** for type-safe application code.
+- **Tailwind CSS** for utility-first styling and responsive design.
+- **shadcn/ui** for accessible, composable UI primitives.
+- **Framer Motion** for subtle, calming interaction and transition animations.
+- **Supabase PostgreSQL** for hosted relational data storage.
+- **Render.com** for application deployment.
+
+## Local Setup
+
+Phase 1 is a skeleton, so exact commands may evolve as the application is scaffolded. A typical local setup should follow this shape:
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd RiseRoot
+   ```
+
+2. **Install dependencies**
+
+   Use the package manager selected by the project once the Next.js app is scaffolded. For example:
+
+   ```bash
+   npm install
+   ```
+
+3. **Create a local environment file**
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   If `.env.example` does not exist yet, create `.env.local` manually using the environment variable guidance below.
+
+4. **Run the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+5. **Open the app locally**
+
+   Visit `http://localhost:3000` in a browser.
+
+## Environment Variables
+
+Environment variables should be stored locally in `.env.local` and configured in Render.com for deployed environments. Do not commit secrets to the repository.
+
+Planned variables include:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=<your-supabase-project-url>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key-if-needed>
+DATABASE_URL=<postgres-connection-string-if-needed-by-server-tools>
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Guidance:
+
+- Variables prefixed with `NEXT_PUBLIC_` are exposed to browser code and must not contain privileged secrets.
+- Supabase service role keys must only be used in trusted server-side contexts.
+- Render.com environment groups can be used to share values across preview and production services.
+- Keep local, staging, and production Supabase projects separate when possible.
+
+## Architecture Overview
+
+Phase 1 defines the intended application architecture rather than implementing every layer completely.
+
+### Frontend
+
+- Next.js routes should organize the main product surfaces such as landing, onboarding, dashboard, routine management, and progress review.
+- React components should be small, reusable, and styled with Tailwind CSS.
+- shadcn/ui components should provide accessible base primitives for forms, dialogs, buttons, cards, and navigation.
+- Framer Motion should be used sparingly for gentle transitions, completion feedback, and screen changes.
+
+### Data Layer
+
+- Supabase PostgreSQL is planned as the source of truth for user profiles, routines, daily routine entries, and progress summaries.
+- Client-side Supabase access should use the public anon key with row-level security enabled.
+- Server-side actions or API routes may be added for trusted workflows that should not run directly in the browser.
+
+### Authentication and Authorization
+
+- Supabase Auth is the likely authentication provider for email-based or social sign-in flows.
+- Row-level security policies should protect user-owned records.
+- Phase 1 does not implement the complete authentication experience.
+
+### Design System
+
+- Tailwind theme tokens should support a soft, health-focused interface.
+- Components should be optimized for mobile touch targets.
+- Empty states, loading states, and error states should use supportive language.
+
+## Deployment Approach
+
+### Render.com
+
+The planned deployment target for the Next.js application is Render.com.
+
+Recommended approach:
+
+1. Create a Render.com web service connected to the repository.
+2. Configure the build command, for example `npm run build`.
+3. Configure the start command, for example `npm run start`.
+4. Add all required environment variables in Render.com.
+5. Enable automatic deploys from the main production branch when appropriate.
+6. Use preview environments or separate services for staging if needed.
+
+### Supabase
+
+Supabase should host the PostgreSQL database and authentication services.
+
+Recommended approach:
+
+1. Create a Supabase project for local development or staging.
+2. Create a separate Supabase project for production.
+3. Define database schema migrations for users, routines, routine completions, and related metadata.
+4. Enable row-level security on user-owned tables.
+5. Store public client keys in `NEXT_PUBLIC_` variables and privileged keys only in secure server environments.
+6. Document migration and seed workflows as they are introduced.
+
+## Folder Structure Overview
+
+The exact structure may change as the app is scaffolded, but the intended layout is:
+
+```text
+RiseRoot/
+├── README.md                  # Phase 1 project overview and setup notes
+├── app/                       # Next.js App Router routes and layouts
+├── components/                # Shared React and shadcn/ui components
+│   ├── ui/                    # shadcn/ui primitives
+│   └── routines/              # Routine-specific UI components
+├── lib/                       # Shared utilities, Supabase clients, helpers
+├── styles/                    # Global styles and Tailwind CSS entry points
+├── supabase/                  # Database migrations, policies, and seed files
+├── public/                    # Static assets
+├── docs/                      # Product notes, architecture docs, and roadmap details
+├── package.json               # Project scripts and dependencies
+├── tailwind.config.ts         # Tailwind CSS configuration
+└── tsconfig.json              # TypeScript configuration
+```
+
+## Phase 2 Roadmap
+
+Phase 2 should move the project from planning and skeleton toward a usable product slice. Potential Phase 2 work includes:
+
+- Scaffold the Next.js application with TypeScript and Tailwind CSS.
+- Install and configure shadcn/ui.
+- Define initial visual design tokens and mobile-first layouts.
+- Create core screens for onboarding, dashboard, routine creation, and daily check-ins.
+- Add Supabase client configuration.
+- Design the initial PostgreSQL schema.
+- Implement Supabase Auth basics.
+- Add row-level security policies for user-owned routine data.
+- Build basic routine CRUD flows.
+- Build daily completion tracking.
+- Add initial loading, empty, and error states.
+- Configure Render.com deployment.
+
+## Future Roadmap
+
+Future phases may include:
+
+- Gentle progress insights and weekly reflections.
+- Optional reminders and notification preferences.
+- Routine templates for common health goals.
+- Offline-friendly check-ins and optimistic updates.
+- Calendar and trend visualizations.
+- Accessibility audits and usability testing.
+- Expanded personalization for tone, schedule, and routine categories.
+- Data export and account deletion flows.
+- Production observability, analytics, and error monitoring.
+- Security review of authentication, row-level security, and server-only workflows.
+
+## Phase 1 Scope Reminder
+
+Phase 1 is intentionally limited to planning, documentation, product direction, and application skeleton decisions. The repository should not be treated as a complete or production-ready health tracking application yet. Full feature implementation, database migrations, authentication, deployment automation, and polished user experience are planned for later phases.
