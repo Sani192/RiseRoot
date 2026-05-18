@@ -163,6 +163,12 @@ Recommended approach:
 5. Enable automatic deploys from the main production branch when appropriate.
 6. Use preview environments or separate services for staging if needed.
 
+### PWA assets and static serving
+
+RiseRoot includes a web app manifest and install icons in `public/`, which Next.js serves from the application root. The manifest is available at `/manifest.webmanifest`, and the app icons are available at `/icon-192.png`, `/icon-512.png`, `/apple-touch-icon.png`, and `/favicon.svg`. These root-relative asset paths are compatible with Render.com static asset serving for a standard Next.js deployment and do not require custom routing, rewrites, or headers.
+
+Offline support is intentionally out of scope for this phase. The project does not register a service worker or cache application routes, so PWA metadata and install assets can ship independently from any future offline strategy.
+
 ### Supabase
 
 Supabase should host the PostgreSQL database and authentication services.

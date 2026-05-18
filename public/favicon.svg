@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="RiseRoot app icon">
+  <rect width="1024" height="1024" fill="#f7f4eb"/>
+  <circle cx="512" cy="512" r="390" fill="#dfead8"/>
+  <g fill="none" stroke="#8b6f47" stroke-linecap="round">
+    <path d="M512 570v200" stroke-width="44"/>
+    <path d="M512 650 390 765M512 650l123 115" stroke-width="32"/>
+    <path d="M512 705 445 830M512 705l68 125" stroke-width="22"/>
+  </g>
+  <path d="M512 590V330" stroke="#59856a" stroke-width="56" stroke-linecap="round"/>
+  <ellipse cx="420" cy="405" rx="165" ry="92" transform="rotate(-28 420 405)" fill="#6fa386"/>
+  <ellipse cx="610" cy="390" rx="176" ry="96" transform="rotate(28 610 390)" fill="#59856a"/>
+  <path d="M512 405H390M512 398l135-26" stroke="#f7f4eb" stroke-width="18" stroke-linecap="round" opacity=".38"/>
+</svg>
