@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { toLocalIsoDate } from "@/features/schedule-engine";
 
 type SelectedDateContextValue = {
   selectedDate: string;
@@ -10,7 +11,7 @@ type SelectedDateContextValue = {
 const SelectedDateContext = createContext<SelectedDateContextValue | null>(null);
 
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  return toLocalIsoDate(new Date(), Intl.DateTimeFormat().resolvedOptions().timeZone);
 }
 
 export function SelectedDateProvider({ children }: { children: ReactNode }) {
