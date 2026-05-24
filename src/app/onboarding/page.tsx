@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import React, { useMemo, useState, type FormEvent } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";

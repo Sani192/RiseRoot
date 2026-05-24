@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import React, { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { toLocalIsoDate } from "@/features/schedule-engine";
 
 type SelectedDateContextValue = {
