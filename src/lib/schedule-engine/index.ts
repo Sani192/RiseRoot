@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { eachUtcDateKeyInRange, localDayStartUtc, localWeekdayIndex, toLocalIsoDate } from "@/lib/date";
+import { eachUtcDateKeyInRange, localDateToUtcDayStart, localWeekdayIndex, utcInstantToLocalIsoDate } from "@/lib/date";
 
 export type RecurrenceFrequency = "daily" | "weekly";
 
@@ -43,8 +43,8 @@ export function occursOnLocalDate({ userTimeZone, localDate, recurrence }: Recur
   const interval = Math.max(recurrence.interval ?? 1, 1);
   if (localDate < recurrence.startDate || (recurrence.endDate && localDate > recurrence.endDate)) return false;
 
-  const startLocalUtc = localDayStartUtc(recurrence.startDate, userTimeZone);
-  const targetLocalUtc = localDayStartUtc(localDate, userTimeZone);
+  const startLocalUtc = localDateToUtcDayStart(recurrence.startDate, userTimeZone);
+  const targetLocalUtc = localDateToUtcDayStart(localDate, userTimeZone);
   const daysBetween = Math.floor((targetLocalUtc.getTime() - startLocalUtc.getTime()) / 86_400_000);
 
   if (recurrence.frequency === "daily") return daysBetween % interval === 0;
@@ -61,9 +61,9 @@ export function generateOccurrences({ userTimeZone, recurrence, localDateRange }
 }
 
 export function toUtcPersistenceTimestamp(localDate: string, userTimeZone: string): string {
-  return localDayStartUtc(localDate, userTimeZone).toISOString();
+  return localDateToUtcDayStart(localDate, userTimeZone).toISOString();
 }
 
 export function fromUtcPersistenceTimestampToLocalDate(utcTimestamp: string, userTimeZone: string): string {
-  return toLocalIsoDate(new Date(utcTimestamp), userTimeZone);
+  return utcInstantToLocalIsoDate(new Date(utcTimestamp), userTimeZone);
 }
