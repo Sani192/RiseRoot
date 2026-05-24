@@ -64,7 +64,7 @@ Phase 1 is a skeleton, so exact commands may evolve as the application is scaffo
    cp .env.example .env.local
    ```
 
-   If `.env.example` does not exist yet, create `.env.local` manually using the environment variable guidance below.
+   Then fill in values from your Supabase project. Keep service role and database credentials server-only; never place them in `NEXT_PUBLIC_` variables.
 
 4. **Run the development server**
 
@@ -80,22 +80,24 @@ Phase 1 is a skeleton, so exact commands may evolve as the application is scaffo
 
 Environment variables should be stored locally in `.env.local` and configured in Render.com for deployed environments. Do not commit secrets to the repository.
 
-Planned variables include:
+Use `.env.example` as the source of truth for expected variables:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=<your-supabase-project-url>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key-if-needed>
-DATABASE_URL=<postgres-connection-string-if-needed-by-server-tools>
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# server-only (never exposed to the browser)
+SUPABASE_SERVICE_ROLE_KEY=<only-if-server-code-needs-it>
+DATABASE_URL=<only-if-server-tools-need-it>
 ```
 
 Guidance:
 
-- Variables prefixed with `NEXT_PUBLIC_` are exposed to browser code and must not contain privileged secrets.
-- Supabase service role keys must only be used in trusted server-side contexts.
-- Render.com environment groups can be used to share values across preview and production services.
-- Keep local, staging, and production Supabase projects separate when possible.
+- Variables prefixed with `NEXT_PUBLIC_` are bundled into client code, so they must contain only public-safe values.
+- Never expose `SUPABASE_SERVICE_ROLE_KEY` in client code, browser bundles, or `NEXT_PUBLIC_` variables.
+- For local development, `NEXT_PUBLIC_APP_URL` should usually be `http://localhost:3000`.
+- Restart the Next.js dev server after changing environment variables.
 
 ## Supabase Database Migrations
 
@@ -162,6 +164,13 @@ Recommended approach:
 4. Add all required environment variables in Render.com.
 5. Enable automatic deploys from the main production branch when appropriate.
 6. Use preview environments or separate services for staging if needed.
+
+#### Render.com environment variable setup
+
+- In the Render service, open **Environment** and add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_APP_URL`.
+- Add `SUPABASE_SERVICE_ROLE_KEY` and `DATABASE_URL` only if your server-side runtime or jobs need them.
+- Keep secrets in Render protected environment variables, not in source control.
+- Use separate values for staging and production environments.
 
 ### PWA assets and static serving
 
