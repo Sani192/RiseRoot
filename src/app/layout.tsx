@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import { warnIfRequiredPublicEnvVarsAreMissing } from "@/lib/env";
 import "./globals.css";
+import { SelectedDateProvider } from "@/features/selected-date-context";
 
 export const metadata: Metadata = {
   title: "RiseRoot",
@@ -37,7 +38,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body><SelectedDateProvider>{children}</SelectedDateProvider></body>
     </html>
   );
 }

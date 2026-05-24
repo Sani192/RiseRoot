@@ -11,6 +11,7 @@ import {
   Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSelectedDate } from "@/features/selected-date-context";
 
 const navItems = [
   { href: "/", label: "Today", icon: Home },
@@ -26,10 +27,20 @@ function isActiveRoute(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { selectedDate, setSelectedDate } = useSelectedDate();
 
   return (
     <>
       <main className="min-h-screen px-4 pb-28 pt-6 sm:px-6 lg:pb-8">
+        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/70 p-3">
+          <label className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Selected date</label>
+          <input
+            className="min-h-10 rounded-xl border border-white/60 bg-white px-3 text-sm"
+            type="date"
+            value={selectedDate}
+            onChange={(event) => setSelectedDate(event.target.value)}
+          />
+        </div>
         {children}
       </main>
       <nav
