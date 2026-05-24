@@ -55,7 +55,7 @@ export default function CalendarPage() {
     {status==="ready" && history.length===0 && <p className="text-sm text-muted-foreground">No historical records yet.</p>}
     {status==="ready" && history.length>0 && <>
       <p className="text-sm">30-day average completion: <span className="font-semibold">{averageCompletion}%</span></p>
-      <ul className="space-y-2">{history.map((item)=><li className="rounded-2xl bg-muted/70 p-3 text-sm" key={item.planDate}>{dateFormatter.format(new Date(`${item.planDate}T00:00:00`))}: {item.completionPercent}% complete</li>)}</ul>
+      <ul className="space-y-2 min-w-0">{history.map((item)=><li className="rounded-2xl bg-muted/70 p-3 text-sm" key={item.planDate}>{dateFormatter.format(new Date(`${item.planDate}T00:00:00`))}: {item.completionPercent}% complete</li>)}</ul>
     </>}
   </Card></section></PageContainer></AppShell>;
 }

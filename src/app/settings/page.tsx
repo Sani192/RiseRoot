@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { bottomSafeAreaPaddingStyle } from "@/components/layout/mobile-safe-area";
 import { envKeys } from "@/lib/env";
 
 const notificationControls = ["Morning routine briefing", "Workout start reminder", "Hydration nudges", "Evening review"];
@@ -46,7 +47,7 @@ export default function SettingsPage() {
     <Card className="space-y-4 border-white/60 bg-white/75 backdrop-blur-xl"><h2 className="text-xl font-semibold text-foreground">Environment and status guidance</h2><div className="space-y-2">{envStatuses.map((item) => (<div className="rounded-2xl border border-white/70 bg-white/65 p-3" key={item.key}><div className="flex items-center justify-between gap-3"><p className="font-medium text-foreground">{item.label}</p><span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{item.status}</span></div><code className="mt-2 block break-all text-xs text-muted-foreground">{item.key}</code></div>))}</div></Card>
 
     {isOpen && <div className="fixed inset-0 z-[70] bg-black/45" role="presentation" onClick={() => setIsOpen(false)}>
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="edit-profile-title" className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-background p-4 shadow-2xl" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem + var(--rr-keyboard-inset, 0px))" }} onClick={(e) => e.stopPropagation()}>
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="edit-profile-title" className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-background p-4 shadow-2xl" style={{ ...bottomSafeAreaPaddingStyle, paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem + var(--rr-keyboard-inset, 0px))" }} onClick={(e) => e.stopPropagation()}>
         <h2 id="edit-profile-title" className="text-lg font-semibold">Quick profile edit</h2>
         <p className="mt-1 text-sm text-muted-foreground">Use onboarding for full edits. This sheet helps quick adjustments.</p>
         <Button className="mt-4" onClick={() => setIsOpen(false)}>Close</Button>
