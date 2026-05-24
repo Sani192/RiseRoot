@@ -227,6 +227,19 @@ export const dailyPlanQueries = {
 };
 
 export const dailyTaskQueries = {
+  async listByDate(
+    userId: string,
+    planDate: string,
+    options?: QueryOptions,
+  ): Promise<DailyTask[]> {
+    const plan = await dailyPlanQueries.getByDate(userId, planDate, options);
+
+    if (!plan) {
+      return [];
+    }
+
+    return this.listForPlan(userId, plan.id, options);
+  },
   async listForPlan(
     userId: string,
     dailyPlanId: string,
@@ -317,6 +330,19 @@ export const dailyTaskQueries = {
 };
 
 export const workoutQueries = {
+  async listByDate(
+    userId: string,
+    planDate: string,
+    options?: QueryOptions,
+  ): Promise<Workout[]> {
+    const plan = await dailyPlanQueries.getByDate(userId, planDate, options);
+
+    if (!plan) {
+      return [];
+    }
+
+    return this.listForPlan(userId, plan.id, options);
+  },
   async listForPlan(
     userId: string,
     dailyPlanId: string,
@@ -505,6 +531,28 @@ export const exerciseQueries = {
 
       return data;
     },
+  },
+};
+
+export const calendarQueries = {
+  async listPlanCompletions(
+    userId: string,
+    range: Required<DateRange>,
+    options?: QueryOptions,
+  ): Promise<Array<{ planDate: string; completionPercent: number }>> {
+    const plans = await dailyPlanQueries.list(userId, range, options);
+    const planRows = await Promise.all(
+      plans.map(async (plan) => {
+        const tasks = await dailyTaskQueries.listForPlan(userId, plan.id, options);
+        const completed = tasks.filter((task) => task.status === "completed").length;
+        const total = tasks.length;
+        const completionPercent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+        return { planDate: plan.plan_date, completionPercent };
+      }),
+    );
+
+    return planRows.sort((a, b) => a.planDate.localeCompare(b.planDate));
   },
 };
 
@@ -942,4 +990,5 @@ export const supabaseQueries = {
   dailyNotes: dailyNoteQueries,
   mealSuggestions: mealSuggestionQueries,
   reminders: reminderQueries,
+  calendar: calendarQueries,
 };
