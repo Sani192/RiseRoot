@@ -11,6 +11,7 @@ import {
   Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { KeyboardSafeScrollRegion } from "@/components/layout/mobile-safe-area";
 import { useSelectedDate } from "@/features/selected-date-context";
 
 const navItems = [
@@ -51,7 +52,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <main className="min-h-screen px-4 pb-[calc(9rem+var(--rr-keyboard-inset,0px))] pt-6 sm:px-6 lg:pb-8" style={{ paddingBottom: "max(9rem, calc(8rem + var(--rr-keyboard-inset, 0px)))" }}>
+      <main className="min-h-screen px-4 pt-6 sm:px-6 lg:pb-8">
+        <KeyboardSafeScrollRegion className="pb-[var(--rr-page-bottom-offset)]">
         <div className="mb-4 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/70 p-3">
           <label className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Selected date</label>
           <input
@@ -62,6 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
         </div>
         {children}
+        </KeyboardSafeScrollRegion>
       </main>
       <nav
         aria-label="Primary app navigation"
