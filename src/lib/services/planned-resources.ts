@@ -5,7 +5,7 @@ export const plannedResourcesService = {
     get: (date: string) => apiFetch(`/api/days?date=${date}`),
   },
   tasks: {
-    list: (date: string) => apiFetch(`/api/tasks?date=${date}`),
+    list: (date: string, userId: string) => apiFetch(`/api/tasks?date=${date}&userId=${userId}`),
     create: (date: string, title: string) =>
       apiFetch(`/api/tasks`, { method: "POST", body: JSON.stringify({ date, title }) }),
   },
@@ -13,7 +13,10 @@ export const plannedResourcesService = {
     list: () => apiFetch(`/api/workouts`),
   },
   logs: {
-    get: (date: string) => apiFetch(`/api/logs?date=${date}`),
+    list: (date: string, userId: string) =>
+      apiFetch<Array<{ id: string; userId: string; loggedOn: string; weightValue: number; weightUnit: "lb" | "kg"; source: string }>>(`/api/logs?date=${date}&userId=${userId}`),
+    create: (date: string, userId: string, weight: number, unit: "lb" | "kg") =>
+      apiFetch(`/api/logs`, { method: "POST", body: JSON.stringify({ date, userId, weight, unit }) }),
   },
   notes: {
     get: (date: string) => apiFetch(`/api/notes?date=${date}`),
