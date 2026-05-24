@@ -1,22 +1,22 @@
 import { NextRequest } from "next/server";
-import { withApiHandler, parseJsonBody } from "@/lib/api/response";
+import { withApiHandler, parseWithSchema } from "@/lib/api/response";
 import { z } from "zod";
+import { workoutRepository } from "@/repositories";
 
-const createWorkoutRequestSchema = z.object({ title: z.string().trim().min(1).max(120) }).strict();
-const workoutResponseSchema = z.object({ id: z.string(), title: z.string(), complete: z.boolean() }).strict();
+const listQuerySchema = z.object({ userId: z.string().min(1) }).strict();
 
-const workoutService = {
-  list: () => [workoutResponseSchema.parse({ id: "workout-1", title: "Upper body", complete: false })],
-  create: (title: string) => workoutResponseSchema.parse({ id: `workout-${Date.now()}`, title, complete: false }),
-};
-
-export async function GET() {
-  return withApiHandler(async () => workoutService.list());
+export async function GET(request: NextRequest) {
+  return withApiHandler(async () => {
+    const query = parseWithSchema({ userId: request.nextUrl.searchParams.get("userId") ?? "" }, listQuerySchema, "query");
+    const workouts = await workoutRepository.listUpcoming(query.userId);
+    return workouts.map((w) => ({ id: w.id, title: w.name, status: w.status, complete: w.status === "completed" }));
+  });
 }
 
 export async function POST(request: NextRequest) {
   return withApiHandler(async () => {
-    const body = await parseJsonBody(request, createWorkoutRequestSchema);
-    return workoutService.create(body.title);
+    const body = await request.json() as { userId: string; title: string };
+    const workout = await workoutRepository.upsert({ userId: body.userId, name: body.title, status: "planned" });
+    return { id: workout.id, title: workout.name, complete: false, status: workout.status };
   });
 }

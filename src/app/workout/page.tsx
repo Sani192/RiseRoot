@@ -5,7 +5,6 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Card } from "@/components/ui/card";
 import { getActiveUserId } from "@/lib/supabase/session";
-import { supabaseQueries } from "@/lib/supabase/queries";
 
 export default function WorkoutPage() {
   const userId = getActiveUserId();
@@ -18,9 +17,11 @@ export default function WorkoutPage() {
       if (!userId) return setStatus("error");
       setStatus("loading");
       try {
-        const workouts = await supabaseQueries.workouts.listUpcoming(userId);
+        const response = await fetch(`/api/workouts?userId=${userId}`, { cache: "no-store" });
+        if (!response.ok) throw new Error("Failed to load workouts");
+        const workouts = (await response.json()) as Array<{ id: string; title?: string; name?: string; status: string }>;
         if (!cancelled) {
-          setRows(workouts.map((x) => ({ id: x.id, name: x.name, status: x.status })));
+          setRows(workouts.map((x) => ({ id: x.id, name: x.name ?? x.title ?? "Workout", status: x.status })));
           setStatus("ready");
         }
       } catch {
