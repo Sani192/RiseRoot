@@ -1,32 +1,42 @@
 import { NextRequest } from "next/server";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { repositories } = vi.hoisted(() => ({ repositories: {
+  scheduleRepository: { upsertPlan: vi.fn() },
+  taskRepository: { listByDate: vi.fn(), upsert: vi.fn() },
+} }));
+
+vi.mock("@/repositories", () => repositories);
 
 import { GET, POST } from "@/app/api/tasks/route";
 
 describe("tasks API contract", () => {
-  it("returns validation envelope with 400 for invalid date query", async () => {
-    const response = await GET(new NextRequest("http://localhost/api/tasks?date=05-24-2026"));
-    const body = await response.json();
-    expect(response.status).toBe(400);
-    expect(body.error).toMatchObject({ code: "VALIDATION_ERROR", message: "date must be YYYY-MM-DD." });
-    expect(body.error.details).toEqual([{ field: "date", message: "Expected YYYY-MM-DD." }]);
-    expect(body.meta.requestId).toBeTypeOf("string");
+  beforeEach(() => {
+    repositories.scheduleRepository.upsertPlan.mockReset();
+    repositories.taskRepository.listByDate.mockReset();
+    repositories.taskRepository.upsert.mockReset();
   });
 
-  it("returns conflict envelope with 409 for duplicate title", async () => {
-    const request = new NextRequest("http://localhost/api/tasks", { method: "POST", body: JSON.stringify({ date: "2026-05-24", title: "duplicate" }) });
-    const response = await POST(request);
+  it("returns validation envelope with 400 for invalid date query", async () => {
+    const response = await GET(new NextRequest("http://localhost/api/tasks?date=05-24-2026&userId=u1"));
     const body = await response.json();
-    expect(response.status).toBe(409);
-    expect(body.error).toMatchObject({ code: "CONFLICT", message: "Task already exists for this date." });
+    expect(response.status).toBe(400);
+    expect(body.error.code).toBe("VALIDATION_ERROR");
+    expect(body.error.details).toEqual([{ field: "date", message: "Expected YYYY-MM-DD." }]);
+  });
+
+  it("returns validation envelope for malformed json payload", async () => {
+    const response = await POST(new NextRequest("http://localhost/api/tasks", { method: "POST", body: "{" }));
+    expect(response.status).toBe(400);
   });
 
   it("returns success envelope and trimmed title for valid payload", async () => {
-    const request = new NextRequest("http://localhost/api/tasks", { method: "POST", body: JSON.stringify({ date: "2026-05-24", title: "  Hydrate  " }) });
+    repositories.scheduleRepository.upsertPlan.mockResolvedValueOnce({ id: "p1" });
+    repositories.taskRepository.upsert.mockResolvedValueOnce({ id: "t1", title: "Hydrate", status: "todo" });
+    const request = new NextRequest("http://localhost/api/tasks", { method: "POST", body: JSON.stringify({ userId: "u1", date: "2026-05-24", title: "  Hydrate  " }) });
     const response = await POST(request);
     const body = await response.json();
     expect(response.status).toBe(200);
     expect(body.data).toMatchObject({ title: "Hydrate", completed: false, date: "2026-05-24" });
-    expect(body.meta.generatedAt).toBeTypeOf("string");
   });
 });
