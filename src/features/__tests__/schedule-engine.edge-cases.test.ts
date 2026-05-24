@@ -1,24 +1,42 @@
 import { describe, expect, it } from "vitest";
 
-import { generateOccurrences, occursOnLocalDate, toLocalIsoDate, type RecurrenceDefinition } from "@/features/schedule-engine";
+import {
+  fromUtcPersistenceTimestampToLocalDate,
+  generateOccurrences,
+  occursOnLocalDate,
+  toLocalIsoDate,
+  toUtcPersistenceTimestamp,
+  type RecurrenceDefinition,
+} from "@/features/schedule-engine";
 
 describe("schedule engine edge cases", () => {
-  it("handles timezone rollover between UTC+14 and UTC-11", () => {
-    const at = new Date("2026-01-01T10:30:00.000Z");
-    expect(toLocalIsoDate(at, "Pacific/Kiritimati")).toBe("2026-01-02");
-    expect(toLocalIsoDate(at, "Pacific/Pago_Pago")).toBe("2025-12-31");
+  it("handles DST start/end transitions in America/New_York", () => {
+    const recurrence: RecurrenceDefinition = { id: "dst", type: "task", title: "Check-in", frequency: "daily", startDate: "2026-03-07" };
+    expect(occursOnLocalDate({ userTimeZone: "America/New_York", recurrence, localDate: "2026-03-08" })).toBe(true);
+    expect(occursOnLocalDate({ userTimeZone: "America/New_York", recurrence, localDate: "2026-11-01" })).toBe(true);
   });
 
-  it("respects weekly recurrence interval and weekdays", () => {
-    const def: RecurrenceDefinition = { id: "w", type: "task", title: "Run", frequency: "weekly", interval: 2, weekdays: [1, 4], startDate: "2026-01-01" };
-    expect(generateOccurrences(def, "2026-01-01", "2026-01-31")).toEqual(["2026-01-01", "2026-01-05", "2026-01-15", "2026-01-19", "2026-01-29"]);
+  it("respects midnight boundaries in non-UTC zones", () => {
+    const at = new Date("2026-01-01T18:45:00.000Z");
+    expect(toLocalIsoDate(at, "Asia/Kolkata")).toBe("2026-01-02");
+    expect(toLocalIsoDate(at, "America/New_York")).toBe("2026-01-01");
   });
 
-  it("keeps generated occurrences de-duplicated for single-day windows", () => {
-    const def: RecurrenceDefinition = { id: "d", type: "task", title: "Hydrate", frequency: "daily", interval: 1, startDate: "2026-05-24" };
-    const hits = generateOccurrences(def, "2026-05-24", "2026-05-24");
-    expect(hits).toEqual(["2026-05-24"]);
-    expect(new Set(hits).size).toBe(hits.length);
-    expect(occursOnLocalDate(def, "2026-05-24")).toBe(true);
+  it("keeps historical backfill consistency for weekly recurrence windows", () => {
+    const recurrence: RecurrenceDefinition = { id: "w", type: "task", title: "Run", frequency: "weekly", interval: 2, weekdays: [1, 4], startDate: "2026-01-01", metadata: { source: "backfill" } };
+    expect(generateOccurrences({ userTimeZone: "America/New_York", recurrence, localDateRange: { from: "2025-11-01", to: "2026-01-31" } })).toEqual([
+      "2026-01-01",
+      "2026-01-05",
+      "2026-01-15",
+      "2026-01-19",
+      "2026-01-29",
+    ]);
+  });
+
+  it("converts local persistence dates to UTC and back consistently", () => {
+    const nyUtc = toUtcPersistenceTimestamp("2026-03-08", "America/New_York");
+    const istUtc = toUtcPersistenceTimestamp("2026-03-08", "Asia/Kolkata");
+    expect(fromUtcPersistenceTimestampToLocalDate(nyUtc, "America/New_York")).toBe("2026-03-08");
+    expect(fromUtcPersistenceTimestampToLocalDate(istUtc, "Asia/Kolkata")).toBe("2026-03-08");
   });
 });
