@@ -24,7 +24,7 @@ describe("schedule engine", () => {
   });
 
   it("generates past and future recurrence dates deterministically", () => {
-    const def: RecurrenceDefinition = {
+    const recurrence: RecurrenceDefinition = {
       id: "hydrate",
       type: "task",
       title: "Hydration",
@@ -33,9 +33,9 @@ describe("schedule engine", () => {
       startDate: "2026-01-01",
     };
 
-    const occurrences = generateOccurrences(def, "2025-12-29", "2026-01-12");
+    const occurrences = generateOccurrences({ userTimeZone: "America/New_York", recurrence, localDateRange: { from: "2025-12-29", to: "2026-01-12" } });
     expect(occurrences).toEqual(["2026-01-02", "2026-01-05", "2026-01-07", "2026-01-09", "2026-01-12"]);
-    expect(occursOnLocalDate(def, "2026-01-06")).toBe(false);
+    expect(occursOnLocalDate({ userTimeZone: "America/New_York", recurrence, localDate: "2026-01-06" })).toBe(false);
   });
 
   it("creates idempotent generation keys and UUIDs", () => {
