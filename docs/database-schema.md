@@ -15,6 +15,15 @@ The `users` table should still exist as an internal ownership root even though u
 - Prefer constrained enum-like strings for statuses and categories in early migrations, with database-level constraints added once values are stable.
 - Treat weight, mood, notes, workouts, and meals as sensitive personal data and avoid logging raw values in application telemetry.
 
+## RLS and Ownership Assumptions
+
+- Baseline migrations should explicitly enable Row Level Security on all user-owned tables (`users`, `daily_plans`, `daily_tasks`, `workouts`, `exercises`, `exercise_alternatives`, `weight_logs`, `mood_logs`, `notes`, `meal_suggestions`, and `reminders`).
+- Baseline policies are owner-scoped CRUD policies where access is allowed only when `auth.uid()` matches table ownership (`id` on `users`, `user_id` on user-owned child tables).
+- `user_id` is intentionally denormalized across child tables to keep ownership checks simple, predictable, and performant in both queries and policies.
+- Cross-table ownership consistency should be enforced by composite foreign keys (for example `(user_id, parent_id)` patterns) so policy checks do not require joins for baseline safety.
+- The `exercise_alternatives` "selected alternative" uniqueness should align with ownership strategy by scoping uniqueness to `(user_id, exercise_id)` for rows where `is_selected = true`.
+- Service-role and administrative workflows are expected to bypass RLS by role configuration; those elevated paths are outside baseline end-user policies and should be documented separately when introduced.
+
 ## Table Summary
 
 | Table                   | Purpose                                                        |
