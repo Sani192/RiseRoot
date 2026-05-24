@@ -1,13 +1,14 @@
 import { generateDailyPlan, type DailyPlanTask } from "@/features/daily-plans";
-import { generateSafeLocalDateKey } from "@/lib/date";
+import { generateSafeLocalDateKey, toLocalIsoDate } from "@/lib/date";
 import { createGenerationKey, deterministicUuid } from "@/lib/schedule-engine";
 import { getDailyWorkoutSplit } from "@/features/tasks";
 import { scheduleRepository, taskRepository, workoutRepository } from "@/repositories";
-import type { DailyTaskInsert, WorkoutInsert } from "@/lib/supabase/types";
+import type { DailyTaskDbInsert, WorkoutDbInsert } from "@/infrastructure/orm/types";
+import type { Schedule } from "@/domain";
 
 export * from "@/lib/schedule-engine";
 
-function mapPlanTask(userId: string, planId: string, localDate: string, task: DailyPlanTask, sortOrder: number): DailyTaskInsert {
+function mapPlanTask(userId: string, planId: string, localDate: string, task: DailyPlanTask, sortOrder: number): DailyTaskDbInsert {
   const recurrenceId = `daily-plan:${task.id}`;
   const key = createGenerationKey(userId, recurrenceId, localDate);
   return {
@@ -20,7 +21,7 @@ function mapPlanTask(userId: string, planId: string, localDate: string, task: Da
   };
 }
 
-export async function ensureScheduleForDate(userId: string, at: Date, timeZone: string): Promise<{ planDate: string; planId: string; generatedTaskIds: string[]; generatedWorkoutId: string }> {
+export async function ensureScheduleForDate(userId: string, at: Date, timeZone: string): Promise<Schedule> {
   const planDate = generateSafeLocalDateKey(at, timeZone);
   const planTemplate = generateDailyPlan(new Date(`${planDate}T12:00:00.000Z`));
 
@@ -35,7 +36,7 @@ export async function ensureScheduleForDate(userId: string, at: Date, timeZone: 
   await Promise.all(tasks.map((task) => taskRepository.upsert(task)));
 
   const split = getDailyWorkoutSplit(planTemplate.weekday);
-  const workoutDef: WorkoutInsert = {
+  const workoutDef: WorkoutDbInsert = {
     id: deterministicUuid(createGenerationKey(userId, `workout:${split.day.toLowerCase()}`, planDate)),
     user_id: userId,
     daily_plan_id: plan.id,
@@ -47,3 +48,5 @@ export async function ensureScheduleForDate(userId: string, at: Date, timeZone: 
 
   return { planDate, planId: plan.id, generatedTaskIds: tasks.map((x) => x.id ?? ""), generatedWorkoutId: workout.id };
 }
+
+export { toLocalIsoDate };
