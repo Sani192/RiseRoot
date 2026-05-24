@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import { generateDailyPlan, type DailyPlanTask } from "@/features/daily-plans";
 import { getDailyWorkoutSplit } from "@/features/tasks";
-import { supabaseQueries } from "@/lib/supabase/queries";
+import { scheduleRepository, taskRepository, workoutRepository } from "@/repositories";
 import type { DailyTaskInsert, WorkoutInsert } from "@/lib/supabase/types";
 
 export type RecurrenceFrequency = "daily" | "weekly";
@@ -102,7 +102,7 @@ export async function ensureScheduleForDate(userId: string, at: Date, timeZone: 
   const planDate = toLocalIsoDate(at, timeZone);
   const planTemplate = generateDailyPlan(new Date(`${planDate}T12:00:00.000Z`));
 
-  const plan = await supabaseQueries.dailyPlans.upsert({
+  const plan = await scheduleRepository.upsertPlan({
     user_id: userId,
     plan_date: planDate,
     status: "active",
@@ -110,7 +110,7 @@ export async function ensureScheduleForDate(userId: string, at: Date, timeZone: 
   });
 
   const tasks = planTemplate.tasks.map((task, idx) => mapPlanTask(userId, plan.id, planDate, task, idx));
-  await Promise.all(tasks.map((task) => supabaseQueries.dailyTasks.upsert(task)));
+  await Promise.all(tasks.map((task) => taskRepository.upsert(task)));
 
   const split = getDailyWorkoutSplit(planTemplate.weekday);
   const workoutDef: WorkoutInsert = {
@@ -121,7 +121,7 @@ export async function ensureScheduleForDate(userId: string, at: Date, timeZone: 
     workout_type: split.recovery ? "recovery" : "mixed",
     status: "planned",
   };
-  const workout = await supabaseQueries.workouts.upsert(workoutDef);
+  const workout = await workoutRepository.upsert(workoutDef);
 
   return { planDate, planId: plan.id, generatedTaskIds: tasks.map((x) => x.id ?? ""), generatedWorkoutId: workout.id };
 }
