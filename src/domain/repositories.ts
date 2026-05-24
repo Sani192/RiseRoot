@@ -49,7 +49,10 @@ export interface ScheduleRepository {
   listPlanCompletions(userId: string, range: { from: string; to: string }): Promise<Array<{ planDate: string; completionPercent: number }>>;
 }
 
-export interface WeightRepository { create(input: CreateWeightLogInput): Promise<WeightLog>; }
+export interface WeightRepository {
+  listByDate(userId: string, loggedOn: string): Promise<WeightLog[]>;
+  create(input: CreateWeightLogInput): Promise<WeightLog>;
+}
 export interface NoteRepository {
   upsertByUtcDay(input: { userId: string; utcDayStart: string; content: string }): Promise<{ id: string; userId: string; utcDayStart: string; content: string; updatedAt: string }>;
   findByUtcDay(userId: string, utcDayStart: string): Promise<{ id: string; userId: string; utcDayStart: string; content: string; updatedAt: string } | null>;

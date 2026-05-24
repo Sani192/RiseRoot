@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Card } from "@/components/ui/card";
 import { toLocalIsoDate } from "@/lib/date";
-import { plannedResourcesService } from "@/lib/services/planned-resources";
+import { loadCompletionHistory } from "@/lib/services/persisted-records";
 
 export default function CalendarPage() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -20,7 +20,7 @@ export default function CalendarPage() {
         const today = new Date();
         const from = new Date(today);
         from.setDate(today.getDate() - 29);
-        const rows = await plannedResourcesService.calendar.history(
+        const rows = await loadCompletionHistory(
           toLocalIsoDate(from, timeZone),
           toLocalIsoDate(today, timeZone),
         );
