@@ -86,7 +86,7 @@ const workoutSplitByWeekday: Record<string, WorkoutSplit> = {
 };
 
 export function getDailyWorkoutSplit(weekday: string): WorkoutSplit {
-  return workoutSplitByWeekday[weekday] ?? workoutSplitByWeekday.Monday;
+  return workoutSplitByWeekday[weekday] ?? workoutSplitByWeekday.Monday!;
 }
 
 
