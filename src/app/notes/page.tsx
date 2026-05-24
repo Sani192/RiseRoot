@@ -23,9 +23,18 @@ export default function NotesPage() {
       })
       .catch(() => {
         setValue("");
-        setStatus("idle");
+        setStatus("error");
       });
   }, [selectedDate]);
 
-  return <AppShell><PageContainer><section className="space-y-4"><Card className="space-y-3"><h1 className="text-2xl font-semibold">Daily notes</h1><p className="text-sm text-muted-foreground">Notes for {selectedDate}.</p></Card><Card className="space-y-3"><textarea value={value} onChange={(e)=>setValue(e.target.value)} className="min-h-56 w-full rounded-2xl border p-3" placeholder="Write your note..." />{status==="loading" && <p className="text-sm">Loading…</p>}{status==="error" && <p className="text-sm text-red-600">Could not load note.</p>}<Button onClick={()=>{setStatus("saving"); plannedResourcesService.notes.save(selectedDate, value).then(()=>setStatus("saved")).catch(()=>setStatus("error"));}}>Save note</Button>{status==="saved" && <p className="text-sm text-primary">Saved.</p>}</Card></section></PageContainer></AppShell>;
+  const saveNote = async () => {
+    if (!value.trim()) {
+      setStatus("error");
+      return;
+    }
+    setStatus("saving");
+    plannedResourcesService.notes.save(selectedDate, value).then(()=>setStatus("saved")).catch(()=>setStatus("error"));
+  };
+
+  return <AppShell><PageContainer><section className="space-y-4"><Card className="space-y-3"><h1 className="text-2xl font-semibold">Daily notes</h1><p className="text-sm text-muted-foreground">Notes for {selectedDate}.</p></Card><Card className="space-y-3"><label className="space-y-2 text-sm font-medium">Note<textarea aria-invalid={status==="error" && !value.trim()} value={value} onChange={(e)=>setValue(e.target.value)} className="min-h-56 w-full rounded-2xl border p-3" placeholder="Write your note..." /></label>{status==="loading" && <p className="text-sm">Loading note...</p>}{status==="error" && <p className="text-sm text-red-600" role="alert">Please enter note text before saving, or retry if loading failed.</p>}<Button onClick={saveNote} disabled={status==="saving" || status==="loading"}>{status==="saving" ? "Saving..." : "Save note"}</Button>{status==="saved" && <p className="text-sm text-primary" role="status">Saved.</p>}</Card></section></PageContainer></AppShell>;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -29,9 +29,29 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { selectedDate, setSelectedDate } = useSelectedDate();
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+
+    const updateViewportVars = () => {
+      const viewport = window.visualViewport;
+      if (!viewport) return;
+      const keyboardInset = Math.max(window.innerHeight - viewport.height - viewport.offsetTop, 0);
+      document.documentElement.style.setProperty("--rr-keyboard-inset", `${keyboardInset}px`);
+    };
+
+    updateViewportVars();
+    window.visualViewport.addEventListener("resize", updateViewportVars);
+    window.visualViewport.addEventListener("scroll", updateViewportVars);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateViewportVars);
+      window.visualViewport?.removeEventListener("scroll", updateViewportVars);
+      document.documentElement.style.setProperty("--rr-keyboard-inset", "0px");
+    };
+  }, []);
+
   return (
     <>
-      <main className="min-h-screen px-4 pb-28 pt-6 sm:px-6 lg:pb-8">
+      <main className="min-h-screen px-4 pb-[calc(9rem+var(--rr-keyboard-inset,0px))] pt-6 sm:px-6 lg:pb-8" style={{ paddingBottom: "max(9rem, calc(8rem + var(--rr-keyboard-inset, 0px)))" }}>
         <div className="mb-4 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/70 p-3">
           <label className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Selected date</label>
           <input
@@ -45,7 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
       <nav
         aria-label="Primary app navigation"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-white/50 bg-background/85 px-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-2xl shadow-black/10 backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-white/50 bg-background/85 px-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem+var(--rr-keyboard-inset,0px))] pt-2 shadow-2xl shadow-black/10 backdrop-blur-xl lg:hidden"
       >
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1 rounded-3xl border border-white/60 bg-white/65 p-1 shadow-sm shadow-black/5">
           {navItems.map((item) => {
