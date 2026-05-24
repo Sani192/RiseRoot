@@ -2,8 +2,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "./types";
 
-const supabaseUrlEnvKey = "NEXT_PUBLIC_SUPABASE_URL";
-const supabaseAnonKeyEnvKey = "NEXT_PUBLIC_SUPABASE_ANON_KEY";
+import { envKeys } from "@/lib/env";
+
+const supabaseUrlEnvKey = envKeys.supabaseUrl;
+const supabaseAnonKeyEnvKey = envKeys.supabaseAnonKey;
 
 export interface SupabaseProjectConfig {
   url: string;
