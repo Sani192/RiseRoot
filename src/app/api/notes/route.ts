@@ -4,19 +4,10 @@ import { withApiHandler, parseJsonBody, parseWithSchema } from "@/lib/api/respon
 import { localDayStartUtc, toLocalIsoDate } from "@/lib/date";
 import { noteRepository } from "@/repositories";
 import { z } from "zod";
+import { ianaTimezoneSchema, isoDateSchema, nonEmptyStringSchema } from "@/lib/api/validation";
 
-const isValidTimeZone = (value: string): boolean => {
-  try {
-    Intl.DateTimeFormat("en-US", { timeZone: value }).format(new Date());
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const timeZoneSchema = z.string().trim().min(1).refine(isValidTimeZone, "Invalid IANA timezone.");
-const getQuerySchema = z.object({ userId: z.string().trim().min(1), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), timezone: timeZoneSchema.default("UTC") }).strict();
-const putBodySchema = z.object({ userId: z.string().trim().min(1), body: z.string().max(5000), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), timezone: timeZoneSchema }).strict();
+const getQuerySchema = z.object({ userId: nonEmptyStringSchema, date: isoDateSchema, timezone: ianaTimezoneSchema.default("UTC") }).strict();
+const putBodySchema = z.object({ userId: nonEmptyStringSchema, body: z.string().max(5000), date: isoDateSchema, timezone: ianaTimezoneSchema }).strict();
 
 export async function GET(request: NextRequest) {
   return withApiHandler(async () => {
