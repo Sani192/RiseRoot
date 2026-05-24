@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { ApiError, toApiError } from "@/lib/api/errors";
+import { z, ZodType } from "zod";
 
 function meta() {
   return {
@@ -45,4 +46,32 @@ export function assertDate(input: string, field: string): string {
     ]);
   }
   return input;
+}
+
+export async function parseJsonBody<S extends ZodType>(request: NextRequest, schema: S, source = "body"): Promise<z.infer<S>> {
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    throw new ApiError("VALIDATION_ERROR", `${source} must be valid JSON.`, 400);
+  }
+
+  return parseWithSchema(raw, schema, source);
+}
+
+export function parseWithSchema<S extends ZodType>(value: unknown, schema: S, source = "request"): z.infer<S> {
+  const parsed = schema.safeParse(value);
+  if (!parsed.success) {
+    throw new ApiError(
+      "VALIDATION_ERROR",
+      `${source} validation failed.`,
+      400,
+      parsed.error.issues.map((issue) => ({
+        field: issue.path.join(".") || source,
+        message: issue.message,
+      })),
+    );
+  }
+
+  return parsed.data;
 }
