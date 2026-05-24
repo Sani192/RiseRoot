@@ -6,3 +6,5 @@ export * from "./reminders";
 export * from "./tasks";
 export * from "./weight";
 export * from "./workouts";
+
+export * from "./schedule-engine";

@@ -291,6 +291,24 @@ export const dailyTaskQueries = {
     return data;
   },
 
+
+
+  async upsert(
+    input: DailyTaskInsert,
+    options?: QueryOptions,
+  ): Promise<DailyTask> {
+    const { data, error } = await getClient(options)
+      .from("daily_tasks")
+      .upsert(input, { onConflict: "id" })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  },
   async update(
     id: string,
     userId: string,
@@ -394,6 +412,21 @@ export const workoutQueries = {
     return data;
   },
 
+
+
+  async upsert(input: WorkoutInsert, options?: QueryOptions): Promise<Workout> {
+    const { data, error } = await getClient(options)
+      .from("workouts")
+      .upsert(input, { onConflict: "id" })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  },
   async update(
     id: string,
     userId: string,
