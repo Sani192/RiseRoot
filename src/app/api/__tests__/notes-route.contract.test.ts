@@ -2,12 +2,12 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/date", () => ({
-  localDayStartUtc: (date: string, timezone: string) => {
+  localDateToUtcDayStart: (date: string, timezone: string) => {
     if (timezone === "America/Los_Angeles") return new Date("2026-03-08T08:00:00.000Z");
     if (timezone === "Asia/Tokyo") return new Date("2026-03-07T15:00:00.000Z");
     return new Date("2026-03-08T05:00:00.000Z");
   },
-  toLocalIsoDate: () => "2026-03-08",
+  utcInstantToLocalIsoDate: () => "2026-03-08",
 }));
 
 const { repo } = vi.hoisted(() => ({ repo: { upsertByUtcDay: vi.fn(), findByUtcDay: vi.fn() } }));

@@ -1,8 +1,8 @@
-import { localDayStartUtc } from "@/lib/date";
+import { localDateToUtcDayStart } from "@/lib/date";
 import { noteRepository, taskRepository, weightRepository, workoutRepository } from "@/repositories";
 
 export async function getDayAggregate(input: { userId: string; date: string; timezone: string }) {
-  const utcDayStart = localDayStartUtc(input.date, input.timezone).toISOString();
+  const utcDayStart = localDateToUtcDayStart(input.date, input.timezone).toISOString();
   const [tasks, workouts, note, logs] = await Promise.all([
     taskRepository.listByDate(input.userId, input.date),
     workoutRepository.listUpcoming(input.userId),
