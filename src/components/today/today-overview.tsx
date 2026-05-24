@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { getActiveUserId } from "@/lib/supabase/session";
-import { supabaseQueries } from "@/lib/supabase/queries";
 
 export function TodayOverview() {
   const userId = getActiveUserId();
@@ -18,7 +17,9 @@ export function TodayOverview() {
       if (!userId) return setStatus("error");
       setStatus("loading");
       try {
-        const taskRows = await supabaseQueries.dailyTasks.listByDate(userId, today);
+        const response = await fetch(`/api/tasks?date=${today}&userId=${userId}`, { cache: "no-store" });
+        if (!response.ok) throw new Error("Failed to load tasks");
+        const taskRows = (await response.json()) as Array<{ id: string; title: string; status: string }>;
         if (!cancelled) {
           setTasks(taskRows.map((x) => ({ id: x.id, title: x.title, status: x.status })));
           setStatus("ready");
