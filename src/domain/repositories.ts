@@ -50,7 +50,10 @@ export interface ScheduleRepository {
 }
 
 export interface WeightRepository { create(input: CreateWeightLogInput): Promise<WeightLog>; }
-export interface NoteRepository { create(input: { userId: string; dailyPlanId: string; content: string }): Promise<{ id: string; userId: string; dailyPlanId: string; content: string }>; }
+export interface NoteRepository {
+  upsertByUtcDay(input: { userId: string; utcDayStart: string; content: string }): Promise<{ id: string; userId: string; utcDayStart: string; content: string; updatedAt: string }>;
+  findByUtcDay(userId: string, utcDayStart: string): Promise<{ id: string; userId: string; utcDayStart: string; content: string; updatedAt: string } | null>;
+}
 export interface MoodRepository { create(input: { userId: string; loggedOn: string; moodScore: number; notes?: string | null }): Promise<MoodLog>; }
 export interface ReminderRepository { create(input: { userId: string; category: Reminder["category"]; status?: Reminder["status"]; channel?: Reminder["channel"]; scheduledAt: string; dailyPlanId?: string | null; relatedType?: string | null; relatedId?: string | null }): Promise<Reminder>; }
 export interface UserRepository { getById(id: string): Promise<User | null>; create(input: { id?: string; displayName?: string | null; email?: string | null; timezone?: string; unitSystem?: User["unitSystem"] }): Promise<User>; }
