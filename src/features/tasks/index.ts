@@ -69,6 +69,27 @@ export function summarizeTaskProgress(
   };
 }
 
+export type WorkoutSplit = {
+  day: string;
+  focus: string;
+  recovery: boolean;
+};
+
+const workoutSplitByWeekday: Record<string, WorkoutSplit> = {
+  Monday: { day: "Monday", focus: "Upper body strength", recovery: false },
+  Tuesday: { day: "Tuesday", focus: "Cardio and core", recovery: false },
+  Wednesday: { day: "Wednesday", focus: "Lower body strength", recovery: false },
+  Thursday: { day: "Thursday", focus: "Mobility and posture", recovery: false },
+  Friday: { day: "Friday", focus: "Full body compound", recovery: false },
+  Saturday: { day: "Saturday", focus: "Active recovery", recovery: true },
+  Sunday: { day: "Sunday", focus: "Rest and reset", recovery: true },
+};
+
+export function getDailyWorkoutSplit(weekday: string): WorkoutSplit {
+  return workoutSplitByWeekday[weekday] ?? workoutSplitByWeekday.Monday;
+}
+
+
 export const tasksFeature: FeatureBoundary = {
   name: "Tasks",
   phase: "phase-1",
