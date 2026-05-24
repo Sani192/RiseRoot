@@ -32,4 +32,10 @@ export const plannedResourcesService = {
         body: JSON.stringify({ enabled }),
       }),
   },
+  calendar: {
+    history: (from: string, to: string) =>
+      apiFetch<Array<{ planDate: string; completionPercent: number }>>(
+        `/api/calendar/history?from=${from}&to=${to}`,
+      ),
+  },
 };
