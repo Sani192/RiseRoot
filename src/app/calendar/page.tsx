@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Card } from "@/components/ui/card";
 import { getActiveUserId } from "@/lib/supabase/session";
-import { supabaseQueries } from "@/lib/supabase/queries";
+import { scheduleRepository } from "@/repositories";
 
 export default function CalendarPage() {
   const userId = getActiveUserId();
@@ -24,7 +24,7 @@ export default function CalendarPage() {
         const today = new Date();
         const from = new Date(today);
         from.setDate(today.getDate() - 29);
-        const rows = await supabaseQueries.calendar.listPlanCompletions(userId, {
+        const rows = await scheduleRepository.listPlanCompletions(userId, {
           from: from.toISOString().slice(0, 10),
           to: today.toISOString().slice(0, 10),
         });
