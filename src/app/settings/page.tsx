@@ -10,9 +10,11 @@ import { envKeys } from "@/lib/env";
 
 const notificationControls = ["Morning routine briefing", "Workout start reminder", "Hydration nudges", "Evening review"];
 const envStatuses = [
+  { label: "Database URL", key: envKeys.databaseUrl, status: "required" },
   { label: "App URL", key: envKeys.appUrl, status: "optional for local" },
-  { label: "Supabase URL", key: envKeys.supabaseUrl, status: "required for data" },
-  { label: "Supabase anon key", key: envKeys.supabaseAnonKey, status: "required for data" },
+  { label: "Supabase URL", key: envKeys.supabaseUrl, status: "optional adapter" },
+  { label: "Supabase anon key", key: envKeys.supabaseAnonKey, status: "optional adapter" },
+  { label: "Supabase service role key", key: envKeys.supabaseServiceRoleKey, status: "optional adapter" },
 ];
 
 export default function SettingsPage() {

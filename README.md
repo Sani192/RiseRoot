@@ -64,7 +64,7 @@ Phase 1 is a skeleton, so exact commands may evolve as the application is scaffo
    cp .env.example .env.local
    ```
 
-   Then fill in values from your Supabase project. Keep service role and database credentials server-only; never place them in `NEXT_PUBLIC_` variables.
+   Then set `DATABASE_URL` first (required for backend connectivity), then optionally add provider adapter variables. Keep privileged credentials server-only; never place them in `NEXT_PUBLIC_` variables.
 
 4. **Run the development server**
 
@@ -83,17 +83,19 @@ Environment variables should be stored locally in `.env.local` and configured in
 Use `.env.example` as the source of truth for expected variables:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=<your-supabase-project-url>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/riseroot
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# server-only (never exposed to the browser)
-SUPABASE_SERVICE_ROLE_KEY=<only-if-server-code-needs-it>
-DATABASE_URL=<only-if-server-tools-need-it>
+# Optional provider-specific adapter variables
+NEXT_PUBLIC_SUPABASE_URL=<optional-supabase-project-url>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<optional-supabase-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<optional-server-only-supabase-key>
 ```
 
 Guidance:
 
+- `DATABASE_URL` is required and is the primary backend connectivity setting for local and cloud Postgres providers.
+- Provider-specific variables (for example Supabase keys) are optional and should only be set when enabling that adapter.
 - Variables prefixed with `NEXT_PUBLIC_` are bundled into client code, so they must contain only public-safe values.
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in client code, browser bundles, or `NEXT_PUBLIC_` variables.
 - For local development, `NEXT_PUBLIC_APP_URL` should usually be `http://localhost:3000`.
@@ -167,8 +169,8 @@ Recommended approach:
 
 #### Render.com environment variable setup
 
-- In the Render service, open **Environment** and add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_APP_URL`.
-- Add `SUPABASE_SERVICE_ROLE_KEY` and `DATABASE_URL` only if your server-side runtime or jobs need them.
+- In the Render service, open **Environment** and add `DATABASE_URL` and `NEXT_PUBLIC_APP_URL`.
+- Add provider-specific variables (for example `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`) only when that adapter is enabled.
 - Keep secrets in Render protected environment variables, not in source control.
 - Use separate values for staging and production environments.
 
@@ -188,7 +190,8 @@ Recommended approach:
 2. Create a separate Supabase project for production.
 3. Define database schema migrations for users, routines, routine completions, and related metadata.
 4. Enable row-level security on user-owned tables.
-5. Store public client keys in `NEXT_PUBLIC_` variables and privileged keys only in secure server environments.
+5. Keep `DATABASE_URL` configured per environment and rotate credentials as needed.
+6. Store public client keys in `NEXT_PUBLIC_` variables and privileged keys only in secure server environments.
 6. Document migration and seed workflows as they are introduced.
 
 ## Folder Structure Overview

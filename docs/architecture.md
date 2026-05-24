@@ -104,8 +104,8 @@ Planned deployment concerns:
 
 - Web application hosting for the frontend.
 - API route hosting in the same platform or a separate backend service.
-- Managed database for persistent user data in later phases.
-- Environment variable management for secrets and service URLs.
+- Managed PostgreSQL database for persistent user data in later phases.
+- Environment variable management with `DATABASE_URL` as the required backend connection string and provider-specific adapter variables as optional.
 - Preview deployments for pull requests.
 - Production monitoring and logging in later phases.
 

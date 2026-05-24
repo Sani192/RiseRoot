@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "./types";
 
-import { envKeys } from "@/lib/env";
+import { envKeys, getOptionalSupabaseAdapterEnv } from "@/lib/env";
 
 const supabaseUrlEnvKey = envKeys.supabaseUrl;
 const supabaseAnonKeyEnvKey = envKeys.supabaseAnonKey;
@@ -32,11 +32,13 @@ let hasWarnedAboutMissingConfig = false;
 export function getMissingSupabaseEnvVars(): string[] {
   const missingEnvVars: string[] = [];
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  const env = getOptionalSupabaseAdapterEnv();
+
+  if (!env.url) {
     missingEnvVars.push(supabaseUrlEnvKey);
   }
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!env.anonKey) {
     missingEnvVars.push(supabaseAnonKeyEnvKey);
   }
 
@@ -44,8 +46,7 @@ export function getMissingSupabaseEnvVars(): string[] {
 }
 
 export function getSupabaseProjectConfig(): SupabaseProjectConfig | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { url, anonKey } = getOptionalSupabaseAdapterEnv();
 
   if (!url || !anonKey) {
     return null;

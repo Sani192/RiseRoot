@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
-import { warnIfRequiredPublicEnvVarsAreMissing } from "@/lib/env";
+import { warnIfRequiredServerEnvVarsAreMissing } from "@/lib/env";
 import "./globals.css";
 import { SelectedDateProvider } from "@/features/selected-date-context";
 
@@ -34,7 +34,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  warnIfRequiredPublicEnvVarsAreMissing();
+  warnIfRequiredServerEnvVarsAreMissing();
 
   return (
     <html lang="en">
