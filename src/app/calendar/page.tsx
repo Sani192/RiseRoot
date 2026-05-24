@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageContainer } from "@/components/layout/page-container";
 import { Card } from "@/components/ui/card";
 import { getActiveUserId } from "@/lib/supabase/session";
+import { toLocalIsoDate } from "@/lib/date";
 import { scheduleRepository } from "@/repositories";
 
 export default function CalendarPage() {
@@ -21,12 +22,13 @@ export default function CalendarPage() {
       }
       setStatus("loading");
       try {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
         const today = new Date();
         const from = new Date(today);
         from.setDate(today.getDate() - 29);
         const rows = await scheduleRepository.listPlanCompletions(userId, {
-          from: from.toISOString().slice(0, 10),
-          to: today.toISOString().slice(0, 10),
+          from: toLocalIsoDate(from, timeZone),
+          to: toLocalIsoDate(today, timeZone),
         });
         if (!cancelled) {
           setHistory(rows);

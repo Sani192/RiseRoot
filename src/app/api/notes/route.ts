@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { ApiError } from "@/lib/api/errors";
 import { withApiHandler, assertDate } from "@/lib/api/response";
+import { formatUtcIsoTimestamp } from "@/lib/date";
 
 const notes = new Map<string, { body: string; date: string; updatedAt: string }>();
 
@@ -25,7 +26,7 @@ export async function PUT(request: NextRequest) {
       throw new ApiError("VALIDATION_ERROR", "body exceeds max length.", 400);
     }
 
-    const record = { date, body: text, updatedAt: new Date().toISOString() };
+    const record = { date, body: text, updatedAt: formatUtcIsoTimestamp() };
     notes.set(date, record);
     return record;
   });

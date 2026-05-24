@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { generateDailyPlan, type DailyPlanTask } from "@/features/daily-plans";
+import { eachUtcDateKeyInRange, generateSafeLocalDateKey, localWeekdayIndex, parseUtcIsoDateOnly, toLocalIsoDate } from "@/lib/date";
 import { getDailyWorkoutSplit } from "@/features/tasks";
 import { scheduleRepository, taskRepository, workoutRepository } from "@/repositories";
 import type { DailyTaskInsert, WorkoutInsert } from "@/lib/supabase/types";
@@ -19,35 +20,6 @@ export type RecurrenceDefinition = {
   metadata?: Record<string, string | number | boolean | null>;
 };
 
-function localDateParts(at: Date, timeZone: string): { year: number; month: number; day: number; weekday: number } {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    weekday: "short",
-  });
-  const parts = formatter.formatToParts(at);
-  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-
-  return {
-    year: Number(byType.year),
-    month: Number(byType.month),
-    day: Number(byType.day),
-    weekday: weekdayMap[byType.weekday ?? "Sun"] ?? 0,
-  };
-}
-
-export function toLocalIsoDate(at: Date, timeZone: string): string {
-  const { year, month, day } = localDateParts(at, timeZone);
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-function parseIsoDate(date: string): Date {
-  return new Date(`${date}T00:00:00.000Z`);
-}
-
 export function createGenerationKey(userId: string, recurrenceId: string, localDate: string): string {
   return `${userId}:${recurrenceId}:${localDate}`;
 }
@@ -61,28 +33,20 @@ export function occursOnLocalDate(def: RecurrenceDefinition, localDate: string):
   const interval = Math.max(def.interval ?? 1, 1);
   if (localDate < def.startDate || (def.endDate && localDate > def.endDate)) return false;
 
-  const start = parseIsoDate(def.startDate);
-  const target = parseIsoDate(localDate);
+  const start = parseUtcIsoDateOnly(def.startDate);
+  const target = parseUtcIsoDateOnly(localDate);
   const daysBetween = Math.floor((target.getTime() - start.getTime()) / 86_400_000);
 
   if (def.frequency === "daily") return daysBetween % interval === 0;
 
   const weeksBetween = Math.floor(daysBetween / 7);
-  const weekday = target.getUTCDay();
-  const allowedWeekdays = def.weekdays ?? [start.getUTCDay()];
+  const weekday = localWeekdayIndex(target, "UTC");
+  const allowedWeekdays = def.weekdays ?? [localWeekdayIndex(start, "UTC")];
   return weeksBetween % interval === 0 && allowedWeekdays.includes(weekday);
 }
 
 export function generateOccurrences(def: RecurrenceDefinition, fromDate: string, toDate: string): string[] {
-  const out: string[] = [];
-  let cursor = parseIsoDate(fromDate);
-  const end = parseIsoDate(toDate);
-  while (cursor <= end) {
-    const localDate = cursor.toISOString().slice(0, 10);
-    if (occursOnLocalDate(def, localDate)) out.push(localDate);
-    cursor = new Date(cursor.getTime() + 86_400_000);
-  }
-  return out;
+  return eachUtcDateKeyInRange(fromDate, toDate).filter((localDate) => occursOnLocalDate(def, localDate));
 }
 
 function mapPlanTask(userId: string, planId: string, localDate: string, task: DailyPlanTask, sortOrder: number): DailyTaskInsert {
@@ -99,7 +63,7 @@ function mapPlanTask(userId: string, planId: string, localDate: string, task: Da
 }
 
 export async function ensureScheduleForDate(userId: string, at: Date, timeZone: string): Promise<{ planDate: string; planId: string; generatedTaskIds: string[]; generatedWorkoutId: string }> {
-  const planDate = toLocalIsoDate(at, timeZone);
+  const planDate = generateSafeLocalDateKey(at, timeZone);
   const planTemplate = generateDailyPlan(new Date(`${planDate}T12:00:00.000Z`));
 
   const plan = await scheduleRepository.upsertPlan({
@@ -125,3 +89,5 @@ export async function ensureScheduleForDate(userId: string, at: Date, timeZone: 
 
   return { planDate, planId: plan.id, generatedTaskIds: tasks.map((x) => x.id ?? ""), generatedWorkoutId: workout.id };
 }
+
+export { toLocalIsoDate };

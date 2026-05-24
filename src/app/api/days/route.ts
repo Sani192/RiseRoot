@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { toLocalIsoDate } from "@/features/schedule-engine";
+import { toLocalIsoDate } from "@/lib/date";
 import { withApiHandler, assertDate } from "@/lib/api/response";
 
 export async function GET(request: NextRequest) {
