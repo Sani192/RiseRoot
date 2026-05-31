@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { normalizeCompletionTimestamp } from "@/domain/status-timestamp-invariants";
+
 import { requireBrowserSupabaseClient } from "./client";
 import type {
   DailyNote,
@@ -49,6 +51,50 @@ type DateRange = {
   from?: string;
   to?: string;
 };
+
+function normalizeDailyTaskMutation<
+  T extends DailyTaskInsert | DailyTaskUpdate,
+>(input: T): T {
+  const normalized = normalizeCompletionTimestamp(
+    {
+      ...input,
+      completedAt: input.completed_at,
+    },
+    {
+      entityName: "daily task",
+      defaultStatus: "title" in input ? "todo" : undefined,
+    },
+  );
+
+  const rest = { ...normalized } as Record<string, unknown>;
+  delete rest.completedAt;
+  return {
+    ...rest,
+    completed_at: normalized.completedAt,
+  } as T;
+}
+
+function normalizeWorkoutMutation<T extends WorkoutInsert | WorkoutUpdate>(
+  input: T,
+): T {
+  const normalized = normalizeCompletionTimestamp(
+    {
+      ...input,
+      completedAt: input.completed_at,
+    },
+    {
+      entityName: "workout",
+      defaultStatus: "name" in input ? "planned" : undefined,
+    },
+  );
+
+  const rest = { ...normalized } as Record<string, unknown>;
+  delete rest.completedAt;
+  return {
+    ...rest,
+    completed_at: normalized.completedAt,
+  } as T;
+}
 
 function getClient(options?: QueryOptions): RiseRootSupabaseClient {
   return options?.client ?? requireBrowserSupabaseClient();
@@ -280,7 +326,7 @@ export const dailyTaskQueries = {
   ): Promise<DailyTask> {
     const { data, error } = await getClient(options)
       .from("daily_tasks")
-      .insert(input)
+      .insert(normalizeDailyTaskMutation(input))
       .select("*")
       .single();
 
@@ -291,15 +337,13 @@ export const dailyTaskQueries = {
     return data;
   },
 
-
-
   async upsert(
     input: DailyTaskInsert,
     options?: QueryOptions,
   ): Promise<DailyTask> {
     const { data, error } = await getClient(options)
       .from("daily_tasks")
-      .upsert(input, { onConflict: "id" })
+      .upsert(normalizeDailyTaskMutation(input), { onConflict: "id" })
       .select("*")
       .single();
 
@@ -317,7 +361,7 @@ export const dailyTaskQueries = {
   ): Promise<DailyTask> {
     const { data, error } = await getClient(options)
       .from("daily_tasks")
-      .update(input)
+      .update(normalizeDailyTaskMutation(input))
       .eq("id", id)
       .eq("user_id", userId)
       .select("*")
@@ -401,7 +445,7 @@ export const workoutQueries = {
   async create(input: WorkoutInsert, options?: QueryOptions): Promise<Workout> {
     const { data, error } = await getClient(options)
       .from("workouts")
-      .insert(input)
+      .insert(normalizeWorkoutMutation(input))
       .select("*")
       .single();
 
@@ -412,12 +456,10 @@ export const workoutQueries = {
     return data;
   },
 
-
-
   async upsert(input: WorkoutInsert, options?: QueryOptions): Promise<Workout> {
     const { data, error } = await getClient(options)
       .from("workouts")
-      .upsert(input, { onConflict: "id" })
+      .upsert(normalizeWorkoutMutation(input), { onConflict: "id" })
       .select("*")
       .single();
 
@@ -435,7 +477,7 @@ export const workoutQueries = {
   ): Promise<Workout> {
     const { data, error } = await getClient(options)
       .from("workouts")
-      .update(input)
+      .update(normalizeWorkoutMutation(input))
       .eq("id", id)
       .eq("user_id", userId)
       .select("*")
@@ -576,10 +618,17 @@ export const calendarQueries = {
     const plans = await dailyPlanQueries.list(userId, range, options);
     const planRows = await Promise.all(
       plans.map(async (plan) => {
-        const tasks = await dailyTaskQueries.listForPlan(userId, plan.id, options);
-        const completed = tasks.filter((task) => task.status === "completed").length;
+        const tasks = await dailyTaskQueries.listForPlan(
+          userId,
+          plan.id,
+          options,
+        );
+        const completed = tasks.filter(
+          (task) => task.status === "completed",
+        ).length;
         const total = tasks.length;
-        const completionPercent = total === 0 ? 0 : Math.round((completed / total) * 100);
+        const completionPercent =
+          total === 0 ? 0 : Math.round((completed / total) * 100);
 
         return { planDate: plan.plan_date, completionPercent };
       }),

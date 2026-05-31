@@ -8,7 +8,6 @@ vi.mock("@/lib/db", () => ({
   getDb: () => ({ db: { execute: executeMock } }),
 }));
 
-
 import {
   drizzleMoodRepository,
   drizzleNoteRepository,
@@ -66,11 +65,17 @@ const row = {
   created_at: "2026-05-31T12:00:00.000Z",
 };
 
-function expectSafeQueryWith(value: string) {
-  const query = executeMock.mock.calls.at(-1)?.[0] as { params?: unknown[] } | undefined;
+function lastQueryParams() {
+  const query = executeMock.mock.calls.at(-1)?.[0] as
+    | { params?: unknown[] }
+    | undefined;
   expect(query).toBeDefined();
   expect(typeof query).not.toBe("string");
-  expect(query?.params).toContain(value);
+  return query?.params ?? [];
+}
+
+function expectSafeQueryWith(value: string) {
+  expect(lastQueryParams()).toContain(value);
 }
 
 describe("drizzle repositories", () => {
@@ -78,10 +83,96 @@ describe("drizzle repositories", () => {
     executeMock.mockReset();
   });
 
+  it("sets task completion timestamps for completed inserts and clears them for non-completed inserts", async () => {
+    executeMock.mockResolvedValue([row]);
+
+    await drizzleTaskRepository.upsert({
+      userId,
+      dailyPlanId: planId,
+      title: "Done",
+      status: "completed",
+    });
+    const completedParams = lastQueryParams();
+    expect(completedParams).toContain("completed");
+    expect(
+      completedParams.find(
+        (param) => typeof param === "string" && /T.*Z$/.test(param),
+      ),
+    ).toBeDefined();
+
+    await drizzleTaskRepository.upsert({
+      userId,
+      dailyPlanId: planId,
+      title: "Skipped",
+      status: "skipped",
+    });
+    const skippedParams = lastQueryParams();
+    expect(skippedParams).toContain("skipped");
+    expect(skippedParams).toContain(null);
+  });
+
+  it("sets workout completion timestamps for completed inserts and clears them for non-completed inserts", async () => {
+    executeMock.mockResolvedValue([row]);
+
+    await drizzleWorkoutRepository.upsert({
+      userId,
+      name: "Done",
+      status: "completed",
+    });
+    const completedParams = lastQueryParams();
+    expect(completedParams).toContain("completed");
+    expect(
+      completedParams.find(
+        (param) => typeof param === "string" && /T.*Z$/.test(param),
+      ),
+    ).toBeDefined();
+
+    await drizzleWorkoutRepository.upsert({
+      userId,
+      name: "Skipped",
+      status: "skipped",
+    });
+    const skippedParams = lastQueryParams();
+    expect(skippedParams).toContain("skipped");
+    expect(skippedParams).toContain(null);
+  });
+
+  it("rejects task and workout completedAt values for non-completed statuses before querying", async () => {
+    await expect(
+      drizzleTaskRepository.upsert({
+        userId,
+        dailyPlanId: planId,
+        title: "Invalid",
+        status: "todo",
+        completedAt: "2026-05-31T12:00:00.000Z",
+      }),
+    ).rejects.toThrow(
+      "daily task completedAt can only be set when status is completed",
+    );
+    expect(executeMock).not.toHaveBeenCalled();
+
+    await expect(
+      drizzleWorkoutRepository.upsert({
+        userId,
+        name: "Invalid",
+        status: "planned",
+        completedAt: "2026-05-31T12:00:00.000Z",
+      }),
+    ).rejects.toThrow(
+      "workout completedAt can only be set when status is completed",
+    );
+    expect(executeMock).not.toHaveBeenCalled();
+  });
+
   it("binds user-controlled task values without interpolating SQL strings", async () => {
     executeMock.mockResolvedValue([row]);
 
-    await drizzleTaskRepository.upsert({ userId, dailyPlanId: planId, title: maliciousText, description: maliciousText });
+    await drizzleTaskRepository.upsert({
+      userId,
+      dailyPlanId: planId,
+      title: maliciousText,
+      description: maliciousText,
+    });
     expectSafeQueryWith(maliciousText);
 
     await drizzleTaskRepository.listByDate(userId, maliciousText);
@@ -91,7 +182,11 @@ describe("drizzle repositories", () => {
   it("binds user-controlled workout values without interpolating SQL strings", async () => {
     executeMock.mockResolvedValue([row]);
 
-    await drizzleWorkoutRepository.upsert({ userId, name: maliciousText, notes: maliciousText });
+    await drizzleWorkoutRepository.upsert({
+      userId,
+      name: maliciousText,
+      notes: maliciousText,
+    });
     expectSafeQueryWith(maliciousText);
 
     await drizzleWorkoutRepository.listUpcoming(maliciousText);
@@ -101,29 +196,52 @@ describe("drizzle repositories", () => {
   it("binds user-controlled schedule values without interpolating SQL strings", async () => {
     executeMock.mockResolvedValue([row]);
 
-    await drizzleScheduleRepository.upsertPlan({ userId, planDate: "2026-05-31", status: "active", summary: maliciousText });
+    await drizzleScheduleRepository.upsertPlan({
+      userId,
+      planDate: "2026-05-31",
+      status: "active",
+      summary: maliciousText,
+    });
     expectSafeQueryWith(maliciousText);
 
-    await drizzleScheduleRepository.listPlanCompletions(userId, { from: maliciousText, to: "2026-06-01" });
+    await drizzleScheduleRepository.listPlanCompletions(userId, {
+      from: maliciousText,
+      to: "2026-06-01",
+    });
     expectSafeQueryWith(maliciousText);
   });
 
   it("binds user-controlled weight, note, mood, reminder, and user values", async () => {
     executeMock.mockResolvedValue([row]);
 
-    await drizzleWeightRepository.create({ userId, loggedOn: "2026-05-31", weightValue: 180.25, notes: maliciousText });
+    await drizzleWeightRepository.create({
+      userId,
+      loggedOn: "2026-05-31",
+      weightValue: 180.25,
+      notes: maliciousText,
+    });
     expectSafeQueryWith(maliciousText);
 
     await drizzleWeightRepository.listByDate(userId, maliciousText);
     expectSafeQueryWith(maliciousText);
 
-    await drizzleNoteRepository.upsertByDate({ userId, noteDate: "2026-05-31", body: maliciousText, dailyPlanId: planId });
+    await drizzleNoteRepository.upsertByDate({
+      userId,
+      noteDate: "2026-05-31",
+      body: maliciousText,
+      dailyPlanId: planId,
+    });
     expectSafeQueryWith(maliciousText);
 
     await drizzleNoteRepository.findByDate(userId, maliciousText);
     expectSafeQueryWith(maliciousText);
 
-    await drizzleMoodRepository.create({ userId, loggedOn: "2026-05-31", moodScore: 7, notes: maliciousText });
+    await drizzleMoodRepository.create({
+      userId,
+      loggedOn: "2026-05-31",
+      moodScore: 7,
+      notes: maliciousText,
+    });
     expectSafeQueryWith(maliciousText);
 
     await drizzleReminderRepository.create({
@@ -136,7 +254,12 @@ describe("drizzle repositories", () => {
     });
     expectSafeQueryWith(maliciousText);
 
-    await drizzleUserRepository.create({ id: userId, displayName: maliciousText, email: "o'hara+sql@example.com", timezone: maliciousText });
+    await drizzleUserRepository.create({
+      id: userId,
+      displayName: maliciousText,
+      email: "o'hara+sql@example.com",
+      timezone: maliciousText,
+    });
     expectSafeQueryWith(maliciousText);
 
     await drizzleUserRepository.getById(maliciousText);
