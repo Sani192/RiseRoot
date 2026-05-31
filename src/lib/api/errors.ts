@@ -1,6 +1,12 @@
 export class ApiError extends Error {
   constructor(
-    public readonly code: "VALIDATION_ERROR" | "NOT_FOUND" | "CONFLICT" | "INTERNAL_ERROR",
+    public readonly code:
+      | "VALIDATION_ERROR"
+      | "UNAUTHENTICATED"
+      | "FORBIDDEN"
+      | "NOT_FOUND"
+      | "CONFLICT"
+      | "INTERNAL_ERROR",
     message: string,
     public readonly status: number,
     public readonly details?: Array<{ field: string; message: string }>,
