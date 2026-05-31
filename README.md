@@ -101,6 +101,28 @@ Guidance:
 - For local development, `NEXT_PUBLIC_APP_URL` should usually be `http://localhost:3000`.
 - Restart the Next.js dev server after changing environment variables.
 
+### Database connectivity smoke check
+
+After installing dependencies, run a lightweight module-load check to verify the runtime packages used by `src/lib/db/index.ts` are available:
+
+```bash
+npm run db:smoke
+```
+
+To verify a live Postgres connection for the configured environment, set `DATABASE_URL` and opt in to the connection probe:
+
+```bash
+DB_SMOKE_CONNECT=1 npm run db:smoke
+```
+
+This executes `SELECT 1` through the `postgres` client and Drizzle adapter. For a local API route check, run `npm run dev` with the same `DATABASE_URL` and call an API route that uses the Drizzle repositories, for example:
+
+```bash
+curl "http://localhost:3000/api/tasks?date=2026-05-31&userId=<existing-user-id>"
+```
+
+A successful response confirms that the route can load `src/lib/db/index.ts#getDb`, resolve both database modules, and reach the configured database.
+
 ## Supabase Database Migrations
 
 The initial schema lives in `supabase/migrations/` and is designed for the Supabase free tier. It creates the documented ownership-ready tables for daily plans, tasks, workouts, exercises, logs, notes, meals, and reminders. Authentication and RLS policies are not required for this first migration, but every user-owned table includes a `user_id` column so policies can be added later without reshaping the data model.
@@ -192,7 +214,7 @@ Recommended approach:
 4. Enable row-level security on user-owned tables.
 5. Keep `DATABASE_URL` configured per environment and rotate credentials as needed.
 6. Store public client keys in `NEXT_PUBLIC_` variables and privileged keys only in secure server environments.
-6. Document migration and seed workflows as they are introduced.
+7. Document migration and seed workflows as they are introduced.
 
 ## Folder Structure Overview
 
