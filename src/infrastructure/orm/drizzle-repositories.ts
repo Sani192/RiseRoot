@@ -1,6 +1,7 @@
 import type {
   CreateWeightLogInput,
   MoodRepository,
+  NoteRecord,
   NoteRepository,
   ReminderRepository,
   ScheduleRepository,
@@ -139,19 +140,19 @@ function toUser(r: unknown): User {
   } as User;
 }
 
-function toDailyNote(r: unknown): {
-  id: string;
-  userId: string;
-  utcDayStart: string;
-  content: string;
-  updatedAt: string;
-} {
+function toIsoDate(value: unknown): string {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value);
+}
+
+function toDailyNote(r: unknown): NoteRecord {
   const note = row<Record<string, unknown>>(r);
   return {
     id: note.id as string,
     userId: note.user_id as string,
-    utcDayStart: note.daily_plan_id as string,
-    content: note.content as string,
+    noteDate: toIsoDate(note.note_date),
+    body: note.body as string,
+    dailyPlanId: (note.daily_plan_id as string | null) ?? null,
     updatedAt: note.updated_at as string,
   };
 }
@@ -278,21 +279,36 @@ export const drizzleWeightRepository: WeightRepository = {
 };
 
 export const drizzleNoteRepository: NoteRepository = {
-  async upsertByUtcDay(input) {
+  async upsertByDate(input) {
     const [r] = await db().execute(safeSql`
-      insert into daily_notes (id, user_id, daily_plan_id, content, created_at, updated_at)
-      values (gen_random_uuid(), ${input.userId}, ${input.utcDayStart}, ${input.content}, now(), now())
-      on conflict (user_id, daily_plan_id) do update
-      set content = excluded.content, updated_at = now()
+      with updated as (
+        update notes
+        set body = ${input.body}, daily_plan_id = ${input.dailyPlanId ?? null}, updated_at = now()
+        where user_id = ${input.userId} and note_date = ${input.noteDate} and category = 'daily'
+        returning *
+      )
+      insert into notes (id, user_id, daily_plan_id, note_date, body, category, created_at, updated_at)
+      select gen_random_uuid(), ${input.userId}, ${input.dailyPlanId ?? null}, ${input.noteDate}, ${input.body}, 'daily', now(), now()
+      where not exists (select 1 from updated)
       returning *
     `);
-    return toDailyNote(r);
+    if (r) return toDailyNote(r);
+
+    const [updated] = await db().execute(safeSql`
+      select *
+      from notes
+      where user_id = ${input.userId} and note_date = ${input.noteDate} and category = 'daily'
+      order by updated_at desc
+      limit 1
+    `);
+    return toDailyNote(updated);
   },
-  async findByUtcDay(userId, utcDayStart) {
+  async findByDate(userId, noteDate) {
     const [r] = await db().execute(safeSql`
       select *
-      from daily_notes
-      where user_id = ${userId} and daily_plan_id = ${utcDayStart}
+      from notes
+      where user_id = ${userId} and note_date = ${noteDate} and category = 'daily'
+      order by updated_at desc
       limit 1
     `);
     if (!r) return null;

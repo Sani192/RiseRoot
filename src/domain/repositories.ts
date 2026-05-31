@@ -53,9 +53,11 @@ export interface WeightRepository {
   listByDate(userId: string, loggedOn: string): Promise<WeightLog[]>;
   create(input: CreateWeightLogInput): Promise<WeightLog>;
 }
+export type NoteRecord = { id: string; userId: string; noteDate: string; body: string; dailyPlanId: string | null; updatedAt: string };
+
 export interface NoteRepository {
-  upsertByUtcDay(input: { userId: string; utcDayStart: string; content: string }): Promise<{ id: string; userId: string; utcDayStart: string; content: string; updatedAt: string }>;
-  findByUtcDay(userId: string, utcDayStart: string): Promise<{ id: string; userId: string; utcDayStart: string; content: string; updatedAt: string } | null>;
+  upsertByDate(input: { userId: string; noteDate: string; body: string; dailyPlanId?: string | null }): Promise<NoteRecord>;
+  findByDate(userId: string, noteDate: string): Promise<NoteRecord | null>;
 }
 export interface MoodRepository { create(input: { userId: string; loggedOn: string; moodScore: number; notes?: string | null }): Promise<MoodLog>; }
 export interface ReminderRepository { create(input: { userId: string; category: Reminder["category"]; status?: Reminder["status"]; channel?: Reminder["channel"]; scheduledAt: string; dailyPlanId?: string | null; relatedType?: string | null; relatedId?: string | null }): Promise<Reminder>; }

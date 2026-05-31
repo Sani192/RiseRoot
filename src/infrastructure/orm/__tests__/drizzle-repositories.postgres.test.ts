@@ -39,7 +39,7 @@ function db(): ExecutableDb {
 
 async function resetSchema() {
   await db().execute(sql`create extension if not exists pgcrypto`);
-  await db().execute(sql`drop table if exists reminders, mood_logs, daily_notes, weight_logs, workouts, daily_tasks, daily_plans, users cascade`);
+  await db().execute(sql`drop table if exists reminders, mood_logs, notes, weight_logs, workouts, daily_tasks, daily_plans, users cascade`);
   await db().execute(sql`
     create table users (
       id uuid primary key default gen_random_uuid(),
@@ -114,14 +114,17 @@ async function resetSchema() {
     )
   `);
   await db().execute(sql`
-    create table daily_notes (
+    create table notes (
       id uuid primary key default gen_random_uuid(),
       user_id uuid not null references users(id) on delete cascade,
-      daily_plan_id uuid not null,
-      content text not null,
+      daily_plan_id uuid,
+      note_date date not null,
+      body text not null,
+      category text not null default 'daily',
+      pinned boolean not null default false,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now(),
-      unique (user_id, daily_plan_id)
+      foreign key (user_id, daily_plan_id) references daily_plans(user_id, id) on delete set null
     )
   `);
   await db().execute(sql`
@@ -162,7 +165,7 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
   });
 
   afterAll(async () => {
-    await db().execute(sql`drop table if exists reminders, mood_logs, daily_notes, weight_logs, workouts, daily_tasks, daily_plans, users cascade`);
+    await db().execute(sql`drop table if exists reminders, mood_logs, notes, weight_logs, workouts, daily_tasks, daily_plans, users cascade`);
     await closeDb();
   });
 
@@ -226,11 +229,13 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
       expect.arrayContaining([expect.objectContaining({ notes: maliciousText })]),
     );
 
-    const note = await drizzleNoteRepository.upsertByUtcDay({ userId, utcDayStart: plan.id, content: maliciousText });
-    expect(note.content).toBe(maliciousText);
-    const updatedNote = await drizzleNoteRepository.upsertByUtcDay({ userId, utcDayStart: plan.id, content: updatedMaliciousText });
-    expect(updatedNote.content).toBe(updatedMaliciousText);
-    await expect(drizzleNoteRepository.findByUtcDay(userId, plan.id)).resolves.toMatchObject({ content: updatedMaliciousText });
+    const note = await drizzleNoteRepository.upsertByDate({ userId, noteDate: "2026-05-31", body: maliciousText, dailyPlanId: plan.id });
+    expect(note.body).toBe(maliciousText);
+    expect(note.dailyPlanId).toBe(plan.id);
+    const updatedNote = await drizzleNoteRepository.upsertByDate({ userId, noteDate: "2026-05-31", body: updatedMaliciousText });
+    expect(updatedNote.body).toBe(updatedMaliciousText);
+    expect(updatedNote.dailyPlanId).toBeNull();
+    await expect(drizzleNoteRepository.findByDate(userId, "2026-05-31")).resolves.toMatchObject({ body: updatedMaliciousText, noteDate: "2026-05-31" });
 
     const mood = await drizzleMoodRepository.create({ userId, loggedOn: "2026-05-31", moodScore: 8, notes: maliciousText });
     expect(mood.notes).toBe(maliciousText);

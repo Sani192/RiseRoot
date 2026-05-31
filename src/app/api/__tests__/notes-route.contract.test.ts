@@ -1,24 +1,15 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/date", () => ({
-  localDateToUtcDayStart: (date: string, timezone: string) => {
-    if (timezone === "America/Los_Angeles") return new Date("2026-03-08T08:00:00.000Z");
-    if (timezone === "Asia/Tokyo") return new Date("2026-03-07T15:00:00.000Z");
-    return new Date("2026-03-08T05:00:00.000Z");
-  },
-  utcInstantToLocalIsoDate: () => "2026-03-08",
-}));
-
-const { repo } = vi.hoisted(() => ({ repo: { upsertByUtcDay: vi.fn(), findByUtcDay: vi.fn() } }));
+const { repo } = vi.hoisted(() => ({ repo: { upsertByDate: vi.fn(), findByDate: vi.fn() } }));
 vi.mock("@/repositories", () => ({ noteRepository: repo }));
 
 import { GET, PUT } from "@/app/api/notes/route";
 
 describe("notes API contract", () => {
   beforeEach(() => {
-    repo.upsertByUtcDay.mockReset();
-    repo.findByUtcDay.mockReset();
+    repo.upsertByDate.mockReset();
+    repo.findByDate.mockReset();
   });
 
   it("returns validation envelope for invalid timezone", async () => {
@@ -26,11 +17,23 @@ describe("notes API contract", () => {
     expect(response.status).toBe(400);
   });
 
-  it("roundtrips note across DST boundary dates", async () => {
-    repo.upsertByUtcDay.mockResolvedValue({ id: "n1", userId: "u1", utcDayStart: "2026-03-08T05:00:00.000Z", content: "DST note", updatedAt: "2026-03-08T05:15:00.000Z" });
-    repo.findByUtcDay.mockResolvedValue({ id: "n1", userId: "u1", utcDayStart: "2026-03-08T05:00:00.000Z", content: "DST note", updatedAt: "2026-03-08T05:15:00.000Z" });
-    const putResponse = await PUT(new NextRequest("http://localhost/api/notes", { method: "PUT", body: JSON.stringify({ userId: "u1", date: "2026-03-08", timezone: "America/New_York", body: " DST note " }) }));
+  it.each([
+    ["spring-forward", "2026-03-08", "America/New_York"],
+    ["west-of-UTC", "2026-03-08", "America/Los_Angeles"],
+    ["east-of-UTC", "2026-03-08", "Asia/Tokyo"],
+    ["fall-back", "2026-11-01", "America/New_York"],
+  ])("roundtrips local note dates without UTC conversion around %s boundaries", async (_label, date, timezone) => {
+    repo.upsertByDate.mockResolvedValue({ id: "n1", userId: "u1", noteDate: date, body: "Boundary note", dailyPlanId: null, updatedAt: "2026-03-08T05:15:00.000Z" });
+    repo.findByDate.mockResolvedValue({ id: "n1", userId: "u1", noteDate: date, body: "Boundary note", dailyPlanId: null, updatedAt: "2026-03-08T05:15:00.000Z" });
+
+    const putResponse = await PUT(new NextRequest("http://localhost/api/notes", { method: "PUT", body: JSON.stringify({ userId: "u1", date, timezone, body: " Boundary note " }) }));
     expect(putResponse.status).toBe(200);
-    expect(repo.upsertByUtcDay).toHaveBeenCalledWith({ userId: "u1", utcDayStart: "2026-03-08T05:00:00.000Z", content: "DST note" });
+    await expect(putResponse.json()).resolves.toMatchObject({ data: { body: "Boundary note", date, timezone } });
+    expect(repo.upsertByDate).toHaveBeenCalledWith({ userId: "u1", noteDate: date, body: "Boundary note" });
+
+    const getResponse = await GET(new NextRequest(`http://localhost/api/notes?userId=u1&date=${date}&timezone=${encodeURIComponent(timezone)}`));
+    expect(getResponse.status).toBe(200);
+    await expect(getResponse.json()).resolves.toMatchObject({ data: { body: "Boundary note", date, timezone } });
+    expect(repo.findByDate).toHaveBeenCalledWith("u1", date);
   });
 });

@@ -225,7 +225,7 @@ Core entities:
 - `exercise_logs`: completion details for performed exercises.
 - `weight_logs`: body weight entries by date.
 - `wellbeing_logs`: mood, energy, stress, and optional notes.
-- `daily_notes`: date-specific free-form notes.
+- `notes`: date-specific free-form notes.
 - `meal_suggestions`: suggested meals and metadata.
 - `meal_statuses`: accepted, skipped, replaced, or completed meal states.
 - `notification_preferences`: category settings and timing preferences.

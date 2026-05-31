@@ -48,7 +48,7 @@ describe("supabase persistence integration flows", () => {
     const client = createClient(state);
 
     await dailyTaskQueries.create({ user_id: "u1", daily_plan_id: "plan-1", title: "Hydrate" }, { client });
-    await dailyNoteQueries.create({ user_id: "u1", note_date: "2026-05-24", content: "Steady day" } as any, { client });
+    await dailyNoteQueries.create({ user_id: "u1", note_date: "2026-05-24", body: "Steady day" }, { client });
     await weightLogQueries.create({ user_id: "u1", logged_on: "2026-05-24", weight_value: 166.4, weight_unit: "lb", source: "manual" }, { client });
     await moodLogQueries.create({ user_id: "u1", logged_on: "2026-05-24", mood_score: 8, energy_score: 7, source: "manual" } as any, { client });
     await workoutQueries.create({ user_id: "u1", daily_plan_id: "plan-1", name: "Upper", workout_type: "strength" }, { client });
