@@ -14,9 +14,16 @@ import type {
 } from "@/domain/repositories";
 import { createRequire } from "node:module";
 
-import type { DailyTask, MoodLog, Reminder, User, WeightLog, Workout } from "@/domain";
+import type {
+  DailyTask,
+  MoodLog,
+  Reminder,
+  User,
+  WeightLog,
+  Workout,
+} from "@/domain";
+import { normalizeCompletionTimestamp } from "@/domain/status-timestamp-invariants";
 import { getDb } from "@/lib/db";
-
 
 type SqlTag = (strings: TemplateStringsArray, ...params: unknown[]) => unknown;
 
@@ -169,15 +176,19 @@ export const drizzleTaskRepository: TaskRepository = {
     return rows.map(toDailyTask);
   },
   async upsert(input: UpsertDailyTaskInput) {
+    const task = normalizeCompletionTimestamp(input, {
+      entityName: "daily task",
+      defaultStatus: "todo",
+    });
     const [r] = await db().execute(safeSql`
       insert into daily_tasks (
         id, user_id, daily_plan_id, title, description, status, priority,
         sort_order, due_at, completed_at, created_at, updated_at
       )
       values (
-        gen_random_uuid(), ${input.userId}, ${input.dailyPlanId}, ${input.title},
-        ${input.description ?? null}, ${input.status ?? "todo"}, ${input.priority ?? null},
-        ${input.sortOrder ?? 0}, ${input.dueAt ?? null}, ${input.completedAt ?? null}, now(), now()
+        gen_random_uuid(), ${task.userId}, ${task.dailyPlanId}, ${task.title},
+        ${task.description ?? null}, ${task.status}, ${task.priority ?? null},
+        ${task.sortOrder ?? 0}, ${task.dueAt ?? null}, ${task.completedAt}, now(), now()
       )
       returning *
     `);
@@ -196,15 +207,19 @@ export const drizzleWorkoutRepository: WorkoutRepository = {
     return rows.map(toWorkout);
   },
   async upsert(input: UpsertWorkoutInput) {
+    const workout = normalizeCompletionTimestamp(input, {
+      entityName: "workout",
+      defaultStatus: "planned",
+    });
     const [r] = await db().execute(safeSql`
       insert into workouts (
         id, user_id, daily_plan_id, name, workout_type, status, scheduled_at,
         started_at, completed_at, notes, created_at, updated_at
       )
       values (
-        gen_random_uuid(), ${input.userId}, ${input.dailyPlanId ?? null}, ${input.name},
-        ${input.workoutType ?? "mixed"}, ${input.status ?? "planned"}, ${input.scheduledAt ?? null},
-        ${input.startedAt ?? null}, ${input.completedAt ?? null}, ${input.notes ?? null}, now(), now()
+        gen_random_uuid(), ${workout.userId}, ${workout.dailyPlanId ?? null}, ${workout.name},
+        ${workout.workoutType ?? "mixed"}, ${workout.status}, ${workout.scheduledAt ?? null},
+        ${workout.startedAt ?? null}, ${workout.completedAt}, ${workout.notes ?? null}, now(), now()
       )
       returning *
     `);
@@ -360,7 +375,10 @@ export const drizzleUserRepository: UserRepository = {
     return toUser(r);
   },
   async create(input) {
-    const idExpression = input.id === undefined ? safeSql`gen_random_uuid()` : safeSql`${input.id}`;
+    const idExpression =
+      input.id === undefined
+        ? safeSql`gen_random_uuid()`
+        : safeSql`${input.id}`;
     const [r] = await db().execute(safeSql`
       insert into users (id, display_name, email, timezone, unit_system, created_at, updated_at)
       values (
