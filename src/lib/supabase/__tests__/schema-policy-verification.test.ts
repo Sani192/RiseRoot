@@ -43,7 +43,7 @@ describe("schema/policy ownership boundaries", () => {
     await workoutQueries.update("w1", "u1", { name: "Leg day" }, { client });
     await weightLogQueries.update("wl1", "u1", { notes: "updated" }, { client });
     await moodLogQueries.update("ml1", "u1", { notes: "updated" } as any, { client });
-    await dailyNoteQueries.update("n1", "u1", { content: "updated" } as any, { client });
+    await dailyNoteQueries.update("n1", "u1", { body: "updated" }, { client });
     await reminderQueries.update("r1", "u1", { status: "dismissed" }, { client });
 
     const userScoped = records.every((r) => !["daily_tasks", "workouts", "weight_logs", "mood_logs", "notes", "reminders"].includes(r.table) || r.filters.includes("user_id"));

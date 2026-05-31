@@ -60,7 +60,8 @@ const row = {
   unit_system: "imperial",
   summary: maliciousText,
   completion_percent: 50,
-  content: maliciousText,
+  note_date: "2026-05-31",
+  body: maliciousText,
   updated_at: "2026-05-31T12:00:00.000Z",
   created_at: "2026-05-31T12:00:00.000Z",
 };
@@ -116,10 +117,10 @@ describe("drizzle repositories", () => {
     await drizzleWeightRepository.listByDate(userId, maliciousText);
     expectSafeQueryWith(maliciousText);
 
-    await drizzleNoteRepository.upsertByUtcDay({ userId, utcDayStart: planId, content: maliciousText });
+    await drizzleNoteRepository.upsertByDate({ userId, noteDate: "2026-05-31", body: maliciousText, dailyPlanId: planId });
     expectSafeQueryWith(maliciousText);
 
-    await drizzleNoteRepository.findByUtcDay(userId, maliciousText);
+    await drizzleNoteRepository.findByDate(userId, maliciousText);
     expectSafeQueryWith(maliciousText);
 
     await drizzleMoodRepository.create({ userId, loggedOn: "2026-05-31", moodScore: 7, notes: maliciousText });
