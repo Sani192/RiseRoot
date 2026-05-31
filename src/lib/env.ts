@@ -4,6 +4,7 @@ export const envKeys = {
   supabaseUrl: "NEXT_PUBLIC_SUPABASE_URL",
   supabaseAnonKey: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   supabaseServiceRoleKey: "SUPABASE_SERVICE_ROLE_KEY",
+  developmentUserId: "RISEROOT_DEV_USER_ID",
 } as const;
 
 export class MissingServerEnvError extends Error {
@@ -49,9 +50,9 @@ export function warnIfRequiredServerEnvVarsAreMissing(): void {
 }
 
 export interface SupabaseAdapterEnv {
-  url?: string;
-  anonKey?: string;
-  serviceRoleKey?: string;
+  url?: string | undefined;
+  anonKey?: string | undefined;
+  serviceRoleKey?: string | undefined;
 }
 
 export function getOptionalSupabaseAdapterEnv(): SupabaseAdapterEnv {
