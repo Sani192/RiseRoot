@@ -64,7 +64,7 @@ Phase 1 is a skeleton, so exact commands may evolve as the application is scaffo
    cp .env.example .env.local
    ```
 
-   Then set `DATABASE_URL` first (required for backend connectivity), then optionally add provider adapter variables. Keep privileged credentials server-only; never place them in `NEXT_PUBLIC_` variables.
+   Then set `DATABASE_URL` first (required for backend connectivity), then optionally add provider adapter variables. For local development before a real auth session exists, create one row in `public.users` and set server-only `LOCAL_DEV_USER_ID` to that row id. Keep privileged credentials and identity bootstrap values server-only; never place them in `NEXT_PUBLIC_` variables.
 
 4. **Run the development server**
 
@@ -90,6 +90,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=<optional-supabase-project-url>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<optional-supabase-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<optional-server-only-supabase-key>
+LOCAL_DEV_USER_ID=<optional-local-public.users-id>
 ```
 
 Guidance:
@@ -98,6 +99,8 @@ Guidance:
 - Provider-specific variables (for example Supabase keys) are optional and should only be set when enabling that adapter.
 - Variables prefixed with `NEXT_PUBLIC_` are bundled into client code, so they must contain only public-safe values.
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in client code, browser bundles, or `NEXT_PUBLIC_` variables.
+- `LOCAL_DEV_USER_ID` is a server-only local/test bootstrap for API routes before the sign-in flow is available. To use it, insert or select one internal development row in `public.users`, copy its `id` into `.env.local`, and restart the dev server. Do not set it in production.
+- Production startup fails when development-only identity variables such as `LOCAL_DEV_USER_ID`, legacy `RISEROOT_DEV_USER_ID`, or legacy `NEXT_PUBLIC_APP_USER_ID` are present. Remove them from Render.com production environments and use authenticated server-side identity instead.
 - For local development, `NEXT_PUBLIC_APP_URL` should usually be `http://localhost:3000`.
 - Restart the Next.js dev server after changing environment variables.
 
@@ -118,7 +121,7 @@ DB_SMOKE_CONNECT=1 npm run db:smoke
 This executes `SELECT 1` through the `postgres` client and Drizzle adapter. For a local API route check, run `npm run dev` with the same `DATABASE_URL` and call an API route that uses the Drizzle repositories, for example:
 
 ```bash
-curl "http://localhost:3000/api/tasks?date=2026-05-31&userId=<existing-user-id>"
+curl "http://localhost:3000/api/tasks?date=2026-05-31"
 ```
 
 A successful response confirms that the route can load `src/lib/db/index.ts#getDb`, resolve both database modules, and reach the configured database.
@@ -141,7 +144,7 @@ Recommended free-tier setup:
      supabase db push
      ```
 
-4. For early development without authentication, insert one internal row in `public.users` and reuse its `id` as the `user_id` on related records.
+4. For early development without authentication, insert one internal row in `public.users`, set that row id as server-only `LOCAL_DEV_USER_ID` in `.env.local`, and reuse it as the `user_id` on related records. Never use `NEXT_PUBLIC_APP_USER_ID` for identity.
 5. Keep separate Supabase projects for local/staging and production when possible. Run migrations against staging before production, and avoid committing service role keys or database passwords.
 6. Before exposing real user data, enable Row Level Security and add policies that scope every user-owned table to the authenticated user's `user_id`.
 

@@ -44,7 +44,7 @@ export function TodayOverview() {
       </Card>
       <Card className="space-y-4 border-white/60 bg-white/75 backdrop-blur-xl">
         {status === "loading" && <p className="text-sm text-muted-foreground">Loading today&apos;s records…</p>}
-        {status === "error" && <p className="text-sm text-red-600">Could not load today data. Ensure NEXT_PUBLIC_APP_USER_ID is set.</p>}
+        {status === "error" && <p className="text-sm text-red-600">Could not load today data. Sign in or configure local development identity on the server.</p>}
         {status === "ready" && tasks.length === 0 && <p className="text-sm text-muted-foreground">No tasks found for today.</p>}
         {status === "ready" && tasks.length > 0 && (
           <>
