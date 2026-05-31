@@ -7,17 +7,17 @@ const { repo } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => ({ workoutRepository: repo }));
 
 import { GET, POST } from "@/app/api/workouts/route";
-import { developmentUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/api/identity";
 
 describe("workouts API contract", () => {
   beforeEach(() => {
-    process.env[developmentUserIdEnvKey] = "u1";
+    process.env[localDevUserIdEnvKey] = "u1";
     repo.listUpcoming.mockReset();
     repo.upsert.mockReset();
   });
 
   it("returns 401 when no server-side identity is available", async () => {
-    delete process.env[developmentUserIdEnvKey];
+    delete process.env[localDevUserIdEnvKey];
     const response = await GET(
       new NextRequest("http://localhost/api/workouts"),
     );

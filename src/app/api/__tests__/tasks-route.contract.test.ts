@@ -11,18 +11,18 @@ const { repositories } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => repositories);
 
 import { GET, POST } from "@/app/api/tasks/route";
-import { developmentUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/api/identity";
 
 describe("tasks API contract", () => {
   beforeEach(() => {
-    process.env[developmentUserIdEnvKey] = "u1";
+    process.env[localDevUserIdEnvKey] = "u1";
     repositories.scheduleRepository.upsertPlan.mockReset();
     repositories.taskRepository.listByDate.mockReset();
     repositories.taskRepository.upsert.mockReset();
   });
 
   it("returns 401 when no server-side identity is available", async () => {
-    delete process.env[developmentUserIdEnvKey];
+    delete process.env[localDevUserIdEnvKey];
     const response = await GET(
       new NextRequest("http://localhost/api/tasks?date=2026-05-24"),
     );

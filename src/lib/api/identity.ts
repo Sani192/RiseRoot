@@ -3,9 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 
 import { ApiError } from "@/lib/api/errors";
 import { envKeys, getOptionalSupabaseAdapterEnv } from "@/lib/env";
+import { getLocalDevUserId } from "@/lib/supabase/session";
 import type { Database } from "@/lib/supabase/types";
 
-export const developmentUserIdEnvKey = envKeys.developmentUserId;
+export const localDevUserIdEnvKey = envKeys.localDevUserId;
 
 export interface AuthenticatedUser {
   id: string;
@@ -19,11 +20,6 @@ function getBearerToken(request: NextRequest): string | null {
   if (scheme?.toLowerCase() !== "bearer" || !token) return null;
 
   return token.trim() || null;
-}
-
-function getDevelopmentUserId(): string | null {
-  if (process.env.NODE_ENV === "production") return null;
-  return process.env[developmentUserIdEnvKey]?.trim() || null;
 }
 
 async function resolveSupabaseUserId(
@@ -55,8 +51,8 @@ export async function resolveAuthenticatedUser(
     if (userId) return { id: userId };
   }
 
-  const developmentUserId = getDevelopmentUserId();
-  if (developmentUserId) return { id: developmentUserId };
+  const localDevUserId = getLocalDevUserId();
+  if (localDevUserId) return { id: localDevUserId };
 
   return null;
 }
@@ -68,7 +64,7 @@ export async function requireAuthenticatedUser(
   if (!user) {
     throw new ApiError(
       "UNAUTHENTICATED",
-      `Authentication is required. In local development only, set the server-only ${developmentUserIdEnvKey} variable; never expose it with a NEXT_PUBLIC_ prefix.`,
+      `Authentication is required. In local development only, set the server-only ${localDevUserIdEnvKey} variable; never expose it with a NEXT_PUBLIC_ prefix.`,
       401,
     );
   }

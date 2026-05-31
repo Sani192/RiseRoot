@@ -7,17 +7,17 @@ const { repo } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => ({ noteRepository: repo }));
 
 import { GET, PUT } from "@/app/api/notes/route";
-import { developmentUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/api/identity";
 
 describe("notes API contract", () => {
   beforeEach(() => {
-    process.env[developmentUserIdEnvKey] = "u1";
+    process.env[localDevUserIdEnvKey] = "u1";
     repo.upsertByDate.mockReset();
     repo.findByDate.mockReset();
   });
 
   it("returns 401 when no server-side identity is available", async () => {
-    delete process.env[developmentUserIdEnvKey];
+    delete process.env[localDevUserIdEnvKey];
     const response = await GET(
       new NextRequest(
         "http://localhost/api/notes?date=2026-03-09&timezone=UTC",

@@ -7,16 +7,16 @@ const { getDayAggregate } = vi.hoisted(() => ({ getDayAggregate: vi.fn() }));
 vi.mock("@/lib/services/day-aggregate", () => ({ getDayAggregate }));
 
 import { GET } from "@/app/api/days/route";
-import { developmentUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/api/identity";
 
 describe("days API contract", () => {
   beforeEach(() => {
-    process.env[developmentUserIdEnvKey] = "u1";
+    process.env[localDevUserIdEnvKey] = "u1";
     getDayAggregate.mockReset();
   });
 
   it("returns 401 when no server-side identity is available", async () => {
-    delete process.env[developmentUserIdEnvKey];
+    delete process.env[localDevUserIdEnvKey];
     const response = await GET(
       new NextRequest("http://localhost/api/days?date=2026-03-08"),
     );
