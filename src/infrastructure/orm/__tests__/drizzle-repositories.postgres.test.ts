@@ -16,10 +16,13 @@ import {
 } from "../drizzle-repositories";
 
 const databaseUrl = process.env.DRIZZLE_REPOSITORY_DATABASE_URL;
-const hasDrizzleOrm = existsSync(join(process.cwd(), "node_modules/drizzle-orm"));
-const describeIfPostgres = databaseUrl && hasDrizzleOrm ? describe : describe.skip;
+const hasDrizzleOrm = existsSync(
+  join(process.cwd(), "node_modules/drizzle-orm"),
+);
+const describeIfPostgres =
+  databaseUrl && hasDrizzleOrm ? describe : describe.skip;
 const maliciousText = "O'Hara'); drop table users; -- /* $1 */";
-const updatedMaliciousText = "updated: \"quote\"; select * from reminders; --";
+const updatedMaliciousText = 'updated: "quote"; select * from reminders; --';
 const userId = "11111111-1111-4111-8111-111111111111";
 const relatedId = "22222222-2222-4222-8222-222222222222";
 
@@ -39,7 +42,9 @@ function db(): ExecutableDb {
 
 async function resetSchema() {
   await db().execute(sql`create extension if not exists pgcrypto`);
-  await db().execute(sql`drop table if exists reminders, mood_logs, notes, weight_logs, workouts, daily_tasks, daily_plans, users cascade`);
+  await db().execute(
+    sql`drop table if exists reminders, mood_logs, notes, weight_logs, workouts, daily_tasks, daily_plans, user_profiles, users cascade`,
+  );
   await db().execute(sql`
     create table users (
       id uuid primary key default gen_random_uuid(),
@@ -47,6 +52,19 @@ async function resetSchema() {
       email text,
       timezone text not null default 'UTC',
       unit_system text not null default 'imperial',
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    )
+  `);
+  await db().execute(sql`
+    create table user_profiles (
+      user_id uuid primary key references users(id) on delete cascade,
+      age integer not null,
+      height_text text,
+      weight_text text,
+      goals jsonb not null default '[]'::jsonb,
+      preferred_gym_timing text not null,
+      wake_time time not null,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     )
@@ -165,7 +183,9 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
   });
 
   afterAll(async () => {
-    await db().execute(sql`drop table if exists reminders, mood_logs, notes, weight_logs, workouts, daily_tasks, daily_plans, users cascade`);
+    await db().execute(
+      sql`drop table if exists reminders, mood_logs, notes, weight_logs, workouts, daily_tasks, daily_plans, user_profiles, users cascade`,
+    );
     await closeDb();
   });
 
@@ -177,7 +197,23 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
       timezone: "America/New_York'; select 1; --",
     });
     expect(user.displayName).toBe(maliciousText);
-    await expect(drizzleUserRepository.getById(userId)).resolves.toMatchObject({ displayName: maliciousText });
+    await expect(drizzleUserRepository.getById(userId)).resolves.toMatchObject({
+      displayName: maliciousText,
+    });
+
+    const profile = await drizzleUserRepository.upsertOnboardingProfile({
+      userId,
+      displayName: updatedMaliciousText,
+      age: 35,
+      heightText: maliciousText,
+      weightText: updatedMaliciousText,
+      goals: ["Build strength", "Move daily"],
+      preferredGymTiming: "Flexible",
+      wakeTime: "07:15",
+      timezone: "America/Los_Angeles",
+    });
+    expect(profile.user.displayName).toBe(updatedMaliciousText);
+    expect(profile.profile.goals).toEqual(["Build strength", "Move daily"]);
 
     const plan = await drizzleScheduleRepository.upsertPlan({
       userId,
@@ -204,7 +240,11 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
     });
     expect(task.title).toBe(maliciousText);
     const tasks = await drizzleTaskRepository.listByDate(userId, "2026-05-31");
-    expect(tasks).toEqual(expect.arrayContaining([expect.objectContaining({ description: updatedMaliciousText })]));
+    expect(tasks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ description: updatedMaliciousText }),
+      ]),
+    );
 
     const workout = await drizzleWorkoutRepository.upsert({
       userId,
@@ -214,8 +254,12 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
       scheduledAt: "2026-05-31T15:00:00.000Z",
     });
     expect(workout.notes).toBe(updatedMaliciousText);
-    await expect(drizzleWorkoutRepository.listUpcoming(userId)).resolves.toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: maliciousText })]),
+    await expect(
+      drizzleWorkoutRepository.listUpcoming(userId),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: maliciousText }),
+      ]),
     );
 
     const weight = await drizzleWeightRepository.create({
@@ -225,19 +269,42 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
       notes: maliciousText,
     });
     expect(weight.notes).toBe(maliciousText);
-    await expect(drizzleWeightRepository.listByDate(userId, "2026-05-31")).resolves.toEqual(
-      expect.arrayContaining([expect.objectContaining({ notes: maliciousText })]),
+    await expect(
+      drizzleWeightRepository.listByDate(userId, "2026-05-31"),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ notes: maliciousText }),
+      ]),
     );
 
-    const note = await drizzleNoteRepository.upsertByDate({ userId, noteDate: "2026-05-31", body: maliciousText, dailyPlanId: plan.id });
+    const note = await drizzleNoteRepository.upsertByDate({
+      userId,
+      noteDate: "2026-05-31",
+      body: maliciousText,
+      dailyPlanId: plan.id,
+    });
     expect(note.body).toBe(maliciousText);
     expect(note.dailyPlanId).toBe(plan.id);
-    const updatedNote = await drizzleNoteRepository.upsertByDate({ userId, noteDate: "2026-05-31", body: updatedMaliciousText });
+    const updatedNote = await drizzleNoteRepository.upsertByDate({
+      userId,
+      noteDate: "2026-05-31",
+      body: updatedMaliciousText,
+    });
     expect(updatedNote.body).toBe(updatedMaliciousText);
     expect(updatedNote.dailyPlanId).toBeNull();
-    await expect(drizzleNoteRepository.findByDate(userId, "2026-05-31")).resolves.toMatchObject({ body: updatedMaliciousText, noteDate: "2026-05-31" });
+    await expect(
+      drizzleNoteRepository.findByDate(userId, "2026-05-31"),
+    ).resolves.toMatchObject({
+      body: updatedMaliciousText,
+      noteDate: "2026-05-31",
+    });
 
-    const mood = await drizzleMoodRepository.create({ userId, loggedOn: "2026-05-31", moodScore: 8, notes: maliciousText });
+    const mood = await drizzleMoodRepository.create({
+      userId,
+      loggedOn: "2026-05-31",
+      moodScore: 8,
+      notes: maliciousText,
+    });
     expect(mood.notes).toBe(maliciousText);
 
     const reminder = await drizzleReminderRepository.create({
@@ -250,8 +317,15 @@ describeIfPostgres("drizzle repositories against PostgreSQL", () => {
     });
     expect(reminder.relatedType).toBe("daily_task");
 
-    await expect(drizzleScheduleRepository.listPlanCompletions(userId, { from: "2026-05-01", to: "2026-06-30" })).resolves.toEqual(
-      expect.arrayContaining([expect.objectContaining({ completionPercent: 0 })]),
+    await expect(
+      drizzleScheduleRepository.listPlanCompletions(userId, {
+        from: "2026-05-01",
+        to: "2026-06-30",
+      }),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ completionPercent: 0 }),
+      ]),
     );
   });
 });

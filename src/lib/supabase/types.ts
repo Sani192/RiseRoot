@@ -103,6 +103,29 @@ export type UserInsert = MutableTimestampInsert & {
 export type UserUpdate = MutableTimestampUpdate &
   Partial<Omit<UserInsert, "id">>;
 
+export type UserProfile = TimestampColumns & {
+  user_id: string;
+  age: number;
+  height_text: string | null;
+  weight_text: string | null;
+  goals: Json;
+  preferred_gym_timing: string;
+  wake_time: string;
+};
+
+export type UserProfileInsert = MutableTimestampInsert & {
+  user_id: string;
+  age: number;
+  height_text?: string | null;
+  weight_text?: string | null;
+  goals?: Json;
+  preferred_gym_timing: string;
+  wake_time: string;
+};
+
+export type UserProfileUpdate = MutableTimestampUpdate &
+  Partial<Omit<UserProfileInsert, "user_id">>;
+
 export type DailyPlan = TimestampColumns & {
   id: string;
   user_id: string;
@@ -393,6 +416,11 @@ export interface Database {
   public: {
     Tables: {
       users: DatabaseTable<User, UserInsert, UserUpdate>;
+      user_profiles: DatabaseTable<
+        UserProfile,
+        UserProfileInsert,
+        UserProfileUpdate
+      >;
       daily_plans: DatabaseTable<DailyPlan, DailyPlanInsert, DailyPlanUpdate>;
       daily_tasks: DatabaseTable<DailyTask, DailyTaskInsert, DailyTaskUpdate>;
       workouts: DatabaseTable<Workout, WorkoutInsert, WorkoutUpdate>;

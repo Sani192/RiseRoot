@@ -8,6 +8,7 @@ import type {
   TaskRepository,
   UpsertDailyTaskInput,
   UpsertWorkoutInput,
+  UpsertOnboardingProfileInput,
   UserRepository,
   WeightRepository,
   WorkoutRepository,
@@ -19,6 +20,7 @@ import type {
   MoodLog,
   Reminder,
   User,
+  UserProfile,
   WeightLog,
   Workout,
 } from "@/domain";
@@ -145,6 +147,21 @@ function toUser(r: unknown): User {
     createdAt: user.created_at,
     updatedAt: user.updated_at,
   } as User;
+}
+
+function toUserProfile(r: unknown): UserProfile {
+  const profile = row<Record<string, unknown>>(r);
+  return {
+    userId: profile.user_id,
+    age: profile.age,
+    heightText: profile.height_text,
+    weightText: profile.weight_text,
+    goals: Array.isArray(profile.goals) ? profile.goals : [],
+    preferredGymTiming: profile.preferred_gym_timing,
+    wakeTime: profile.wake_time,
+    createdAt: profile.created_at,
+    updatedAt: profile.updated_at,
+  } as UserProfile;
 }
 
 function toIsoDate(value: unknown): string {
@@ -373,6 +390,45 @@ export const drizzleUserRepository: UserRepository = {
     `);
     if (!r) return null;
     return toUser(r);
+  },
+
+  async upsertOnboardingProfile(input: UpsertOnboardingProfileInput) {
+    const [userRow] = await db().execute(safeSql`
+      insert into users (id, display_name, timezone, unit_system, created_at, updated_at)
+      values (
+        ${input.userId}, ${input.displayName}, ${input.timezone ?? "UTC"},
+        ${input.unitSystem ?? "imperial"}, now(), now()
+      )
+      on conflict (id) do update set
+        display_name = excluded.display_name,
+        timezone = excluded.timezone,
+        unit_system = excluded.unit_system,
+        updated_at = now()
+      returning *
+    `);
+
+    const [profileRow] = await db().execute(safeSql`
+      insert into user_profiles (
+        user_id, age, height_text, weight_text, goals, preferred_gym_timing,
+        wake_time, created_at, updated_at
+      )
+      values (
+        ${input.userId}, ${input.age}, ${input.heightText ?? null},
+        ${input.weightText ?? null}, ${JSON.stringify(input.goals)}::jsonb,
+        ${input.preferredGymTiming}, ${input.wakeTime}, now(), now()
+      )
+      on conflict (user_id) do update set
+        age = excluded.age,
+        height_text = excluded.height_text,
+        weight_text = excluded.weight_text,
+        goals = excluded.goals,
+        preferred_gym_timing = excluded.preferred_gym_timing,
+        wake_time = excluded.wake_time,
+        updated_at = now()
+      returning *
+    `);
+
+    return { user: toUser(userRow), profile: toUserProfile(profileRow) };
   },
   async create(input) {
     const idExpression =
