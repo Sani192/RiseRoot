@@ -1,4 +1,12 @@
-import type { DailyTask, MoodLog, Reminder, User, WeightLog, Workout } from "@/domain";
+import type {
+  DailyTask,
+  MoodLog,
+  Reminder,
+  User,
+  UserProfile,
+  WeightLog,
+  Workout,
+} from "@/domain";
 
 export interface UpsertDailyTaskInput {
   userId: string;
@@ -45,20 +53,94 @@ export interface WorkoutRepository {
 }
 
 export interface ScheduleRepository {
-  upsertPlan(input: { userId: string; planDate: string; status: string; summary: string }): Promise<{ id: string; userId: string; planDate: string; status: string; summary: string }>;
-  listPlanCompletions(userId: string, range: { from: string; to: string }): Promise<Array<{ planDate: string; completionPercent: number }>>;
+  upsertPlan(input: {
+    userId: string;
+    planDate: string;
+    status: string;
+    summary: string;
+  }): Promise<{
+    id: string;
+    userId: string;
+    planDate: string;
+    status: string;
+    summary: string;
+  }>;
+  listPlanCompletions(
+    userId: string,
+    range: { from: string; to: string },
+  ): Promise<Array<{ planDate: string; completionPercent: number }>>;
 }
 
 export interface WeightRepository {
   listByDate(userId: string, loggedOn: string): Promise<WeightLog[]>;
   create(input: CreateWeightLogInput): Promise<WeightLog>;
 }
-export type NoteRecord = { id: string; userId: string; noteDate: string; body: string; dailyPlanId: string | null; updatedAt: string };
+export type NoteRecord = {
+  id: string;
+  userId: string;
+  noteDate: string;
+  body: string;
+  dailyPlanId: string | null;
+  updatedAt: string;
+};
 
 export interface NoteRepository {
-  upsertByDate(input: { userId: string; noteDate: string; body: string; dailyPlanId?: string | null }): Promise<NoteRecord>;
+  upsertByDate(input: {
+    userId: string;
+    noteDate: string;
+    body: string;
+    dailyPlanId?: string | null;
+  }): Promise<NoteRecord>;
   findByDate(userId: string, noteDate: string): Promise<NoteRecord | null>;
 }
-export interface MoodRepository { create(input: { userId: string; loggedOn: string; moodScore: number; notes?: string | null }): Promise<MoodLog>; }
-export interface ReminderRepository { create(input: { userId: string; category: Reminder["category"]; status?: Reminder["status"]; channel?: Reminder["channel"]; scheduledAt: string; dailyPlanId?: string | null; relatedType?: string | null; relatedId?: string | null }): Promise<Reminder>; }
-export interface UserRepository { getById(id: string): Promise<User | null>; create(input: { id?: string; displayName?: string | null; email?: string | null; timezone?: string; unitSystem?: User["unitSystem"] }): Promise<User>; }
+export interface MoodRepository {
+  create(input: {
+    userId: string;
+    loggedOn: string;
+    moodScore: number;
+    notes?: string | null;
+  }): Promise<MoodLog>;
+}
+export interface ReminderRepository {
+  create(input: {
+    userId: string;
+    category: Reminder["category"];
+    status?: Reminder["status"];
+    channel?: Reminder["channel"];
+    scheduledAt: string;
+    dailyPlanId?: string | null;
+    relatedType?: string | null;
+    relatedId?: string | null;
+  }): Promise<Reminder>;
+}
+export interface UpsertOnboardingProfileInput {
+  userId: string;
+  displayName: string;
+  age: number;
+  heightText?: string | null;
+  weightText?: string | null;
+  goals: string[];
+  preferredGymTiming: string;
+  wakeTime: string;
+  timezone?: string;
+  unitSystem?: User["unitSystem"];
+}
+
+export interface OnboardingProfileResult {
+  user: User;
+  profile: UserProfile;
+}
+
+export interface UserRepository {
+  getById(id: string): Promise<User | null>;
+  create(input: {
+    id?: string;
+    displayName?: string | null;
+    email?: string | null;
+    timezone?: string;
+    unitSystem?: User["unitSystem"];
+  }): Promise<User>;
+  upsertOnboardingProfile(
+    input: UpsertOnboardingProfileInput,
+  ): Promise<OnboardingProfileResult>;
+}

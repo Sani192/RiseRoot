@@ -20,6 +20,7 @@ import {
 } from "../drizzle-repositories";
 
 const maliciousText = "O'Hara'); drop table users; -- /* $1 */";
+const updatedMaliciousText = 'updated: "quote"; select * from reminders; --';
 const userId = "00000000-0000-0000-0000-000000000001";
 const planId = "00000000-0000-0000-0000-000000000002";
 const relatedId = "00000000-0000-0000-0000-000000000003";
@@ -54,6 +55,12 @@ const row = {
   delivered_at: null,
   snoozed_until: null,
   display_name: maliciousText,
+  age: 29,
+  height_text: maliciousText,
+  weight_text: updatedMaliciousText,
+  goals: ["Build strength"],
+  preferred_gym_timing: "Early morning",
+  wake_time: "06:30",
   email: "o'hara+sql@example.com",
   timezone: maliciousText,
   unit_system: "imperial",
@@ -261,6 +268,20 @@ describe("drizzle repositories", () => {
       timezone: maliciousText,
     });
     expectSafeQueryWith(maliciousText);
+
+    executeMock.mockResolvedValue([row]);
+    await drizzleUserRepository.upsertOnboardingProfile({
+      userId,
+      displayName: maliciousText,
+      age: 29,
+      heightText: maliciousText,
+      weightText: updatedMaliciousText,
+      goals: ["Build strength"],
+      preferredGymTiming: "Early morning",
+      wakeTime: "06:30",
+      timezone: maliciousText,
+    });
+    expectSafeQueryWith(updatedMaliciousText);
 
     await drizzleUserRepository.getById(maliciousText);
     expectSafeQueryWith(maliciousText);
