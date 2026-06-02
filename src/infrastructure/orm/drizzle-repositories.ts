@@ -1,5 +1,6 @@
 import type {
   CreateWeightLogInput,
+  MealSuggestionRepository,
   MoodRepository,
   NoteRecord,
   NoteRepository,
@@ -9,6 +10,7 @@ import type {
   UpsertDailyTaskInput,
   UpsertWorkoutInput,
   UpsertOnboardingProfileInput,
+  UpdateMealSuggestionInput,
   UserRepository,
   WeightRepository,
   WorkoutRepository,
@@ -17,6 +19,7 @@ import { createRequire } from "node:module";
 
 import type {
   DailyTask,
+  MealSuggestion,
   MoodLog,
   Reminder,
   User,
@@ -178,6 +181,36 @@ function toDailyNote(r: unknown): NoteRecord {
     body: note.body as string,
     dailyPlanId: (note.daily_plan_id as string | null) ?? null,
     updatedAt: note.updated_at as string,
+  };
+}
+
+function jsonArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function jsonObject(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
+function toMealSuggestion(r: unknown): MealSuggestion {
+  const meal = row<Record<string, unknown>>(r);
+  return {
+    id: meal.id as string,
+    userId: meal.user_id as string,
+    dailyPlanId: (meal.daily_plan_id as string | null) ?? null,
+    mealDate: toIsoDate(meal.meal_date),
+    mealType: meal.meal_type as MealSuggestion["mealType"],
+    title: meal.title as string,
+    description: (meal.description as string | null) ?? null,
+    ingredients: jsonArray(meal.ingredients),
+    nutritionSummary: jsonObject(meal.nutrition_summary),
+    status: meal.status as MealSuggestion["status"],
+    source: meal.source as MealSuggestion["source"],
+    createdAt: meal.created_at as string,
+    updatedAt: meal.updated_at as string,
   };
 }
 
@@ -345,6 +378,69 @@ export const drizzleNoteRepository: NoteRepository = {
     `);
     if (!r) return null;
     return toDailyNote(r);
+  },
+};
+
+export const drizzleMealSuggestionRepository: MealSuggestionRepository = {
+  async listByDate(input) {
+    const rows = await db().execute(safeSql`
+      select *
+      from meal_suggestions
+      where user_id = ${input.userId}
+        and meal_date = ${input.mealDate}
+        and (${input.mealType ?? null}::text is null or meal_type = ${input.mealType ?? null})
+      order by
+        case meal_type
+          when 'breakfast' then 1
+          when 'lunch' then 2
+          when 'dinner' then 3
+          when 'snack' then 4
+          else 5
+        end,
+        created_at asc
+    `);
+    return rows.map(toMealSuggestion);
+  },
+
+  async seedForDate(input) {
+    const created: MealSuggestion[] = [];
+    for (const suggestion of input.suggestions) {
+      const [r] = await db().execute(safeSql`
+        insert into meal_suggestions (
+          id, user_id, meal_date, meal_type, title, description, ingredients,
+          nutrition_summary, status, source, created_at, updated_at
+        )
+        values (
+          gen_random_uuid(), ${input.userId}, ${input.mealDate}, ${suggestion.mealType},
+          ${suggestion.title}, ${suggestion.description ?? null},
+          ${JSON.stringify(suggestion.ingredients ?? [])}::jsonb,
+          ${JSON.stringify(suggestion.nutritionSummary ?? {})}::jsonb,
+          'suggested', ${suggestion.source ?? "template"}, now(), now()
+        )
+        returning *
+      `);
+      created.push(toMealSuggestion(r));
+    }
+    return created;
+  },
+
+  async update(input: UpdateMealSuggestionInput) {
+    const hasTitle = Object.prototype.hasOwnProperty.call(input, "title");
+    const hasDescription = Object.prototype.hasOwnProperty.call(
+      input,
+      "description",
+    );
+    const [r] = await db().execute(safeSql`
+      update meal_suggestions
+      set
+        status = ${input.status},
+        title = case when ${hasTitle} then ${input.title ?? null} else title end,
+        description = case when ${hasDescription} then ${input.description ?? null} else description end,
+        updated_at = now()
+      where user_id = ${input.userId} and id = ${input.id} and meal_date = ${input.mealDate}
+      returning *
+    `);
+    return r ? toMealSuggestion(r) : null;
   },
 };
 

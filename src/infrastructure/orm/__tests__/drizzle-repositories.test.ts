@@ -9,6 +9,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 import {
+  drizzleMealSuggestionRepository,
   drizzleMoodRepository,
   drizzleNoteRepository,
   drizzleReminderRepository,
@@ -47,6 +48,10 @@ const row = {
   weight_value: "180.25",
   weight_unit: "lb",
   source: "manual",
+  meal_date: "2026-05-31",
+  meal_type: "breakfast",
+  ingredients: [],
+  nutrition_summary: { prepMinutes: 5 },
   mood_score: 7,
   category: "task",
   channel: "in_app",
@@ -218,7 +223,7 @@ describe("drizzle repositories", () => {
     expectSafeQueryWith(maliciousText);
   });
 
-  it("binds user-controlled weight, note, mood, reminder, and user values", async () => {
+  it("binds user-controlled weight, note, meal, mood, reminder, and user values", async () => {
     executeMock.mockResolvedValue([row]);
 
     await drizzleWeightRepository.create({
@@ -242,6 +247,38 @@ describe("drizzle repositories", () => {
 
     await drizzleNoteRepository.findByDate(userId, maliciousText);
     expectSafeQueryWith(maliciousText);
+
+    await drizzleMealSuggestionRepository.seedForDate({
+      userId,
+      mealDate: "2026-05-31",
+      suggestions: [
+        {
+          userId,
+          mealDate: "2026-05-31",
+          mealType: "breakfast",
+          title: maliciousText,
+          description: maliciousText,
+        },
+      ],
+    });
+    expectSafeQueryWith(maliciousText);
+
+    await drizzleMealSuggestionRepository.listByDate({
+      userId,
+      mealDate: maliciousText,
+      mealType: "breakfast",
+    });
+    expectSafeQueryWith(maliciousText);
+
+    await drizzleMealSuggestionRepository.update({
+      userId,
+      id: relatedId,
+      mealDate: "2026-05-31",
+      status: "replaced",
+      title: updatedMaliciousText,
+      description: maliciousText,
+    });
+    expectSafeQueryWith(updatedMaliciousText);
 
     await drizzleMoodRepository.create({
       userId,

@@ -1,4 +1,5 @@
 import {
+  drizzleMealSuggestionRepository,
   drizzleMoodRepository,
   drizzleNoteRepository,
   drizzleReminderRepository,
@@ -11,11 +12,14 @@ import {
 
 export {
   type CreateWeightLogInput,
+  type MealSuggestionRepository,
   type MoodRepository,
   type NoteRepository,
   type ReminderRepository,
   type ScheduleRepository,
   type TaskRepository,
+  type SeedMealSuggestionInput,
+  type UpdateMealSuggestionInput,
   type UpsertDailyTaskInput,
   type UpsertWorkoutInput,
   type UpsertOnboardingProfileInput,
@@ -30,6 +34,7 @@ export const scheduleRepository = drizzleScheduleRepository;
 export const workoutRepository = drizzleWorkoutRepository;
 export const weightRepository = drizzleWeightRepository;
 export const noteRepository = drizzleNoteRepository;
+export const mealSuggestionRepository = drizzleMealSuggestionRepository;
 export const moodRepository = drizzleMoodRepository;
 export const reminderRepository = drizzleReminderRepository;
 export const userRepository = drizzleUserRepository;
