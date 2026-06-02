@@ -1,5 +1,6 @@
 import type {
   DailyTask,
+  MealSuggestion,
   MoodLog,
   Reminder,
   User,
@@ -42,6 +43,26 @@ export interface CreateWeightLogInput {
   notes?: string | null;
 }
 
+export interface SeedMealSuggestionInput {
+  userId: string;
+  mealDate: string;
+  mealType: MealSuggestion["mealType"];
+  title: string;
+  description?: string | null;
+  ingredients?: unknown[];
+  nutritionSummary?: Record<string, unknown>;
+  source?: MealSuggestion["source"];
+}
+
+export interface UpdateMealSuggestionInput {
+  userId: string;
+  id: string;
+  mealDate: string;
+  status: MealSuggestion["status"];
+  title?: string;
+  description?: string | null;
+}
+
 export interface TaskRepository {
   listByDate(userId: string, planDate: string): Promise<DailyTask[]>;
   upsert(input: UpsertDailyTaskInput): Promise<DailyTask>;
@@ -50,6 +71,20 @@ export interface TaskRepository {
 export interface WorkoutRepository {
   listUpcoming(userId: string): Promise<Workout[]>;
   upsert(input: UpsertWorkoutInput): Promise<Workout>;
+}
+
+export interface MealSuggestionRepository {
+  listByDate(input: {
+    userId: string;
+    mealDate: string;
+    mealType?: MealSuggestion["mealType"];
+  }): Promise<MealSuggestion[]>;
+  seedForDate(input: {
+    userId: string;
+    mealDate: string;
+    suggestions: SeedMealSuggestionInput[];
+  }): Promise<MealSuggestion[]>;
+  update(input: UpdateMealSuggestionInput): Promise<MealSuggestion | null>;
 }
 
 export interface ScheduleRepository {

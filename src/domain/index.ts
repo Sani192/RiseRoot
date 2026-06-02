@@ -30,6 +30,14 @@ export type ReminderStatus =
   | "snoozed"
   | "cancelled";
 export type ReminderChannel = "in_app" | "push" | "email";
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+export type MealSuggestionStatus =
+  | "suggested"
+  | "accepted"
+  | "skipped"
+  | "replaced"
+  | "completed";
+export type MealSuggestionSource = "manual" | "template" | "generated";
 
 export interface User {
   id: string;
@@ -117,6 +125,21 @@ export interface MoodLog {
   loggedOn: string;
   moodScore: number;
   notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface MealSuggestion {
+  id: string;
+  userId: string;
+  dailyPlanId: string | null;
+  mealDate: string;
+  mealType: MealType;
+  title: string;
+  description: string | null;
+  ingredients: unknown[];
+  nutritionSummary: Record<string, unknown>;
+  status: MealSuggestionStatus;
+  source: MealSuggestionSource;
   createdAt: string;
   updatedAt: string;
 }
