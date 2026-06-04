@@ -1,9 +1,12 @@
+import { createRequire } from "node:module";
+
 export type DrizzleDbInstance = {
   client: unknown;
   db: unknown;
 };
 
 let instance: DrizzleDbInstance | null = null;
+const requireModule = createRequire(import.meta.url);
 
 export function getDatabaseUrl(): string {
   const url = process.env.DATABASE_URL;
@@ -14,8 +17,13 @@ export function getDatabaseUrl(): string {
 export function getDb(): DrizzleDbInstance {
   if (instance) return instance;
 
-  const postgresModule = require("postgres") as (url: string, options?: Record<string, unknown>) => unknown;
-  const drizzleModule = require("drizzle-orm/postgres-js") as { drizzle: (client: unknown) => unknown };
+  const postgresModule = requireModule("postgres") as (
+    url: string,
+    options?: Record<string, unknown>,
+  ) => unknown;
+  const drizzleModule = requireModule("drizzle-orm/postgres-js") as {
+    drizzle: (client: unknown) => unknown;
+  };
 
   const client = postgresModule(getDatabaseUrl(), { prepare: false, max: 1 });
   const db = drizzleModule.drizzle(client);

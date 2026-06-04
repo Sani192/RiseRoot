@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { localDateToUtcDayStart, localDateUtcDayRange, utcInstantToLocalIsoDate } from "@/lib/date";
+import {
+  localDateToUtcDayStart,
+  localDateUtcDayRange,
+  utcInstantToLocalIsoDate,
+} from "@/lib/date";
 
 describe("canonical day timezone helpers", () => {
   it("computes UTC day-start across DST start and end", () => {
-    expect(localDateToUtcDayStart("2026-03-08", "America/New_York").toISOString()).toBe("2026-03-08T05:00:00.000Z");
-    expect(localDateToUtcDayStart("2026-11-01", "America/New_York").toISOString()).toBe("2026-11-01T04:00:00.000Z");
+    expect(
+      localDateToUtcDayStart("2026-03-08", "America/New_York").toISOString(),
+    ).toBe("2026-03-08T05:00:00.000Z");
+    expect(
+      localDateToUtcDayStart("2026-11-01", "America/New_York").toISOString(),
+    ).toBe("2026-11-01T04:00:00.000Z");
   });
 
   it("returns half-open UTC ranges with midnight boundary transitions", () => {
@@ -20,8 +28,12 @@ describe("canonical day timezone helpers", () => {
 
   it("keeps stored UTC records stable while local timezone switches", () => {
     const storedUtc = "2026-03-08T05:00:00.000Z";
-    expect(utcInstantToLocalIsoDate(storedUtc, "America/New_York")).toBe("2026-03-08");
+    expect(utcInstantToLocalIsoDate(storedUtc, "America/New_York")).toBe(
+      "2026-03-08",
+    );
     expect(utcInstantToLocalIsoDate(storedUtc, "UTC")).toBe("2026-03-08");
-    expect(utcInstantToLocalIsoDate(storedUtc, "Asia/Tokyo")).toBe("2026-03-08");
+    expect(utcInstantToLocalIsoDate(storedUtc, "Asia/Tokyo")).toBe(
+      "2026-03-08",
+    );
   });
 });

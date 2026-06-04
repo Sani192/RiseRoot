@@ -14,13 +14,13 @@ This report summarizes the recent architecture refactor focused on timezone corr
 
 - Database bootstrap is centralized around a Drizzle + `postgres` client with required `DATABASE_URL`. (`src/lib/db/index.ts`)
 - Environment contract is explicitly mapped to `DATABASE_URL`. (`src/lib/env.ts`)
-- Repository and mapper boundaries isolate persistence rows from domain model shapes. (`src/repositories/index.ts`, `src/infrastructure/orm/mappers.ts`)
+- Repository and mapper boundaries isolate persistence rows from domain model shapes. (`src/repositories/index.ts`, `src/infrastructure/orm/drizzle-repositories.ts`)
 
 ## 2) Removed/isolated vendor couplings
 
-- Vendor-specific persistence concerns were isolated behind repositories/mappers and ORM boundaries, reducing direct coupling in feature/UI modules. (`src/repositories/index.ts`, `src/infrastructure/orm/mappers.ts`)
+- Vendor-specific persistence concerns were isolated behind repositories/mappers and ORM boundaries, reducing direct coupling in feature/UI modules. (`src/repositories/index.ts`, `src/infrastructure/orm/drizzle-repositories.ts`)
 - DB provider selection is now primarily an environment concern via connection URL rather than application branching logic. (`src/lib/db/index.ts`, `src/lib/env.ts`)
-- Existing Supabase-oriented query modules remain available but are effectively separated from the newer Drizzle-centric core path. (`src/lib/supabase/queries.ts`, `src/lib/db/index.ts`)
+- Existing legacy provider-oriented query modules remain available but are effectively separated from the newer Drizzle-centric core path. (`src/infrastructure/orm/drizzle-repositories.ts`, `src/lib/db/index.ts`)
 
 ## 3) Timezone correctness fixes
 

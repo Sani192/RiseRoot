@@ -78,7 +78,11 @@ export type WorkoutSplit = {
 const workoutSplitByWeekday: Record<string, WorkoutSplit> = {
   Monday: { day: "Monday", focus: "Upper body strength", recovery: false },
   Tuesday: { day: "Tuesday", focus: "Cardio and core", recovery: false },
-  Wednesday: { day: "Wednesday", focus: "Lower body strength", recovery: false },
+  Wednesday: {
+    day: "Wednesday",
+    focus: "Lower body strength",
+    recovery: false,
+  },
   Thursday: { day: "Thursday", focus: "Mobility and posture", recovery: false },
   Friday: { day: "Friday", focus: "Full body compound", recovery: false },
   Saturday: { day: "Saturday", focus: "Active recovery", recovery: true },
@@ -88,7 +92,6 @@ const workoutSplitByWeekday: Record<string, WorkoutSplit> = {
 export function getDailyWorkoutSplit(weekday: string): WorkoutSplit {
   return workoutSplitByWeekday[weekday] ?? workoutSplitByWeekday.Monday!;
 }
-
 
 export const tasksFeature: FeatureBoundary = {
   name: "Tasks",

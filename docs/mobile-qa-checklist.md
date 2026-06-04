@@ -1,11 +1,13 @@
 # Mobile viewport QA checklist (iPhone)
 
 ## Visual regression targets
+
 - iPhone SE (375x667)
 - iPhone 12/13/14 (390x844)
 - iPhone 14 Pro Max (430x932)
 
 ## Verify on each mobile-first route
+
 - `src/app/page.tsx`
 - `src/app/onboarding/page.tsx`
 - `src/app/workout/page.tsx`
@@ -15,6 +17,7 @@
 - `src/app/settings/page.tsx`
 
 ## Checks
+
 1. Focus text/number/time input and confirm content scrolls above keyboard in iOS Safari.
 2. Confirm sticky CTA/footer action remains visible and does not overlap focused fields.
 3. Confirm bottom navigation never covers the final form control/content.

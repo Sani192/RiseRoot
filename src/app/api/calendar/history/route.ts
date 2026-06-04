@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { withApiHandler, parseWithSchema } from "@/lib/api/response";
 import { getCalendarHistory } from "@/features/calendar-history";
-import { requireAuthenticatedUser } from "@/lib/api/identity";
+import { requireAuthenticatedUser } from "@/lib/identity/authentication";
 import { z } from "zod";
 
 const querySchema = z

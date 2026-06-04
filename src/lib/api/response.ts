@@ -41,25 +41,40 @@ export async function withApiHandler<T>(handler: () => Promise<T>) {
 export function assertDate(input: string, field: string): string {
   const valid = /^\d{4}-\d{2}-\d{2}$/.test(input);
   if (!valid) {
-    throw new ApiError("VALIDATION_ERROR", `${field} must be YYYY-MM-DD.`, 400, [
-      { field, message: "Expected YYYY-MM-DD." },
-    ]);
+    throw new ApiError(
+      "VALIDATION_ERROR",
+      `${field} must be YYYY-MM-DD.`,
+      400,
+      [{ field, message: "Expected YYYY-MM-DD." }],
+    );
   }
   return input;
 }
 
-export async function parseJsonBody<S extends ZodType>(request: NextRequest, schema: S, source = "body"): Promise<z.infer<S>> {
+export async function parseJsonBody<S extends ZodType>(
+  request: NextRequest,
+  schema: S,
+  source = "body",
+): Promise<z.infer<S>> {
   let raw: unknown;
   try {
     raw = await request.json();
   } catch {
-    throw new ApiError("VALIDATION_ERROR", `${source} must be valid JSON.`, 400);
+    throw new ApiError(
+      "VALIDATION_ERROR",
+      `${source} must be valid JSON.`,
+      400,
+    );
   }
 
   return parseWithSchema(raw, schema, source);
 }
 
-export function parseWithSchema<S extends ZodType>(value: unknown, schema: S, source = "request"): z.infer<S> {
+export function parseWithSchema<S extends ZodType>(
+  value: unknown,
+  schema: S,
+  source = "request",
+): z.infer<S> {
   const parsed = schema.safeParse(value);
   if (!parsed.success) {
     throw new ApiError(

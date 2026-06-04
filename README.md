@@ -10,7 +10,7 @@ The repository now contains a runnable application with implemented UI, API, dat
 - **API routes** under `src/app/api` for daily plans, tasks, workouts, logs, meal suggestions, notes, calendar history, and notification preferences.
 - **PostgreSQL-backed data layer** using `DATABASE_URL`, the `postgres` driver, and Drizzle's Postgres adapter.
 - **Repository layer** in `src/repositories` and `src/infrastructure/orm` that keeps feature code behind domain repository interfaces.
-- **PostgreSQL schema migration** in `supabase/migrations/20260518000000_create_core_schema.sql`, including user-owned tables, indexes, constraints, update triggers, and baseline RLS policies.
+- **PostgreSQL schema migration** in `migrations/20260518000000_create_core_schema.sql`, including user-owned tables, indexes, constraints, and update triggers.
 - **PWA metadata and install assets** through Next.js metadata in `src/app/layout.tsx` plus `public/manifest.webmanifest`, icons, Apple touch icon, and favicon.
 - **Automated validation** through linting, TypeScript checks, Vitest tests, and database smoke checks.
 
@@ -45,7 +45,6 @@ RiseRoot should feel calming, minimal, and supportive:
 - **Zod** for API input validation and structured response contracts.
 - **PostgreSQL** as the provider-neutral relational database target.
 - **postgres** plus **Drizzle ORM's Postgres adapter** for server-side database access.
-- **Supabase JS** only where Supabase-specific helpers or tests are needed.
 - **Vitest**, Testing Library, ESLint, Prettier, and TypeScript for validation.
 
 ## Application Surfaces
@@ -66,22 +65,22 @@ The app currently includes these App Router pages:
 
 API responses use a common envelope shape with `data` or `error` plus request metadata. Route handlers validate query strings and request bodies with Zod before calling feature services and repositories.
 
-| Route | Methods | Purpose |
-| --- | --- | --- |
-| `/api/days` | `GET` | Load daily plan data for a date. |
-| `/api/tasks` | `GET`, `POST` | List or upsert daily tasks. |
-| `/api/workouts` | `GET`, `POST` | List or upsert workouts. |
-| `/api/logs` | `GET`, `POST` | Read and create health logs such as mood/weight-related records. |
-| `/api/meals` | `GET` | Read meal suggestions. |
-| `/api/notes` | `GET`, `PUT` | Read and update notes. |
-| `/api/calendar/history` | `GET` | Read calendar/history summaries. |
-| `/api/notifications/preferences` | `GET`, `PUT` | Read and update notification preference state. |
+| Route                            | Methods       | Purpose                                                          |
+| -------------------------------- | ------------- | ---------------------------------------------------------------- |
+| `/api/days`                      | `GET`         | Load daily plan data for a date.                                 |
+| `/api/tasks`                     | `GET`, `POST` | List or upsert daily tasks.                                      |
+| `/api/workouts`                  | `GET`, `POST` | List or upsert workouts.                                         |
+| `/api/logs`                      | `GET`, `POST` | Read and create health logs such as mood/weight-related records. |
+| `/api/meals`                     | `GET`         | Read meal suggestions.                                           |
+| `/api/notes`                     | `GET`, `PUT`  | Read and update notes.                                           |
+| `/api/calendar/history`          | `GET`         | Read calendar/history summaries.                                 |
+| `/api/notifications/preferences` | `GET`, `PUT`  | Read and update notification preference state.                   |
 
 See [`docs/api-contracts.md`](docs/api-contracts.md) for detailed request and response contracts.
 
 ## Database and Repository Layer
 
-`DATABASE_URL` is the primary database configuration for all environments. It should point at any compatible PostgreSQL database: local Postgres, Supabase Postgres, Render Postgres, Neon, Railway, Fly Postgres, or another managed PostgreSQL provider.
+`DATABASE_URL` is the primary database configuration for all environments. It should point at any compatible PostgreSQL database: local Postgres, Render Postgres, Neon, Railway, Fly Postgres, or another managed PostgreSQL provider.
 
 The implemented server-side path is:
 
@@ -105,7 +104,7 @@ The schema migration creates the current core tables:
 - `meal_suggestions`
 - `reminders`
 
-The migration also defines ownership-oriented foreign keys, indexes, status/value constraints, `updated_at` triggers, and RLS policies aligned to `auth.uid()` for Supabase-compatible deployments. For a provider-neutral explanation of portability expectations, see [`docs/database-portability.md`](docs/database-portability.md) and [`docs/database-portability-validation.md`](docs/database-portability-validation.md).
+The migration also defines ownership-oriented foreign keys, indexes, status/value constraints, and `updated_at` triggers. For a provider-neutral explanation of portability expectations, see [`docs/database-portability.md`](docs/database-portability.md) and [`docs/database-portability-validation.md`](docs/database-portability-validation.md).
 
 ## PWA Metadata
 
@@ -124,7 +123,7 @@ For the full local walkthrough, see [`docs/local-development-setup.md`](docs/loc
 - Node.js compatible with Next.js 15 and the package lock/dependency set.
 - npm for the documented scripts.
 - A PostgreSQL database reachable by `DATABASE_URL`.
-- The schema from `supabase/migrations/20260518000000_create_core_schema.sql` applied to that database.
+- The schema from `migrations/20260518000000_create_core_schema.sql` applied to that database.
 - A development user row in `public.users` when using `LOCAL_DEV_USER_ID` before production authentication is wired into every flow.
 
 ### Quick start
@@ -154,7 +153,7 @@ For the full local walkthrough, see [`docs/local-development-setup.md`](docs/loc
 
 4. **Apply the schema**
 
-   Run the SQL in `supabase/migrations/20260518000000_create_core_schema.sql` against your PostgreSQL database. Supabase-specific RLS policy statements are included for Supabase-compatible environments; see the portability docs if your provider does not expose Supabase's `auth.uid()` helper.
+   Run the SQL in `migrations/20260518000000_create_core_schema.sql` against your PostgreSQL database.
 
 5. **Bootstrap a local user when needed**
 
@@ -187,13 +186,6 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/riseroot
 # Optional public app origin
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Optional provider-specific adapter variables
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-# Optional server-only provider credential
-SUPABASE_SERVICE_ROLE_KEY=
-
 # Development-only server-side identity bootstrap
 LOCAL_DEV_USER_ID=
 ```
@@ -205,8 +197,7 @@ Guidance:
 - `NEXT_PUBLIC_APP_URL` should usually be `http://localhost:3000` locally and the canonical HTTPS origin in deployed environments.
 - `LOCAL_DEV_USER_ID` is a server-only local/test bootstrap. Do not set it in production.
 - Production startup rejects development-only identity variables such as `LOCAL_DEV_USER_ID`, legacy `RISEROOT_DEV_USER_ID`, and legacy `NEXT_PUBLIC_APP_USER_ID`.
-- Provider-specific variables such as Supabase keys are optional and belong only in environments using that provider integration.
-- Never expose `SUPABASE_SERVICE_ROLE_KEY`, database credentials, or identity bootstrap values in browser bundles or `NEXT_PUBLIC_` variables.
+- Never expose database credentials or identity bootstrap values in browser bundles or `NEXT_PUBLIC_` variables.
 - Restart the Next.js dev server after changing environment variables.
 
 ## Validation and Smoke Checks
@@ -260,19 +251,6 @@ Render is one supported hosting option, not a hard requirement.
 - Keep secrets in Render environment variables, not in source control.
 - Do not configure `LOCAL_DEV_USER_ID` or other development-only identity variables in production.
 
-### Optional: Supabase deployment notes
-
-Supabase can provide PostgreSQL, RLS helpers, and authentication, but the core app configuration should still start with `DATABASE_URL`.
-
-Recommended Supabase-specific steps:
-
-1. Create separate Supabase projects for development/staging and production when possible.
-2. Configure `DATABASE_URL` from the project's PostgreSQL connection string.
-3. Apply `supabase/migrations/20260518000000_create_core_schema.sql` through the Supabase SQL editor or CLI.
-4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` only when browser/client Supabase helpers are needed.
-5. Set `SUPABASE_SERVICE_ROLE_KEY` only in secure server-side environments when privileged Supabase operations are required.
-6. Keep RLS enabled for user-owned data before exposing real user records.
-
 ## Documentation Index
 
 - [Local development setup](docs/local-development-setup.md)
@@ -297,10 +275,10 @@ RiseRoot/
 │   ├── domain/                 # Domain types, repository contracts, and invariants
 │   ├── features/               # Feature-level orchestration and schedule logic
 │   ├── infrastructure/orm/     # Drizzle/Postgres repository implementations and mappers
-│   ├── lib/                    # API helpers, DB connection, env checks, Supabase helpers, utilities
+│   ├── lib/                    # API helpers, DB connection, env checks, identity, and utilities
 │   ├── repositories/           # Active repository exports used by application code
 │   └── types/                  # Shared TypeScript types
-├── supabase/migrations/        # PostgreSQL schema migration SQL
+├── migrations/                 # PostgreSQL schema migration SQL
 ├── public/                     # Manifest, icons, Apple touch icon, and favicon
 ├── docs/                       # Architecture, setup, deployment, validation, and product docs
 ├── scripts/                    # Utility scripts such as database smoke checks

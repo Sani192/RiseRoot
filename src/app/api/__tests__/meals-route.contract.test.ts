@@ -12,7 +12,7 @@ const { repo } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => ({ mealSuggestionRepository: repo }));
 
 import { GET, PUT } from "@/app/api/meals/route";
-import { localDevUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/identity/authentication";
 
 const persistedMeal = {
   id: "m1",

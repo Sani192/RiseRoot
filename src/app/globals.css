@@ -23,12 +23,17 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-
 :root {
   --rr-keyboard-inset: 0px;
   --rr-bottom-safe-area: env(safe-area-inset-bottom);
-  --rr-sticky-footer-offset: max(5.75rem, calc(5rem + var(--rr-bottom-safe-area)));
-  --rr-page-bottom-offset: max(8.5rem, calc(7.25rem + var(--rr-bottom-safe-area) + var(--rr-keyboard-inset)));
+  --rr-sticky-footer-offset: max(
+    5.75rem,
+    calc(5rem + var(--rr-bottom-safe-area))
+  );
+  --rr-page-bottom-offset: max(
+    8.5rem,
+    calc(7.25rem + var(--rr-bottom-safe-area) + var(--rr-keyboard-inset))
+  );
 }
 
 .rr-keyboard-safe-scroll {

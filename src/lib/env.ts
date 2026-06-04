@@ -1,9 +1,6 @@
 export const envKeys = {
   databaseUrl: "DATABASE_URL",
   appUrl: "NEXT_PUBLIC_APP_URL",
-  supabaseUrl: "NEXT_PUBLIC_SUPABASE_URL",
-  supabaseAnonKey: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  supabaseServiceRoleKey: "SUPABASE_SERVICE_ROLE_KEY",
   localDevUserId: "LOCAL_DEV_USER_ID",
   legacyDevelopmentUserId: "RISEROOT_DEV_USER_ID",
   legacyPublicAppUserId: "NEXT_PUBLIC_APP_USER_ID",
@@ -86,18 +83,4 @@ export function warnIfRequiredServerEnvVarsAreMissing(): void {
   }
 
   console.error(new MissingServerEnvError(missing).message);
-}
-
-export interface SupabaseAdapterEnv {
-  url?: string | undefined;
-  anonKey?: string | undefined;
-  serviceRoleKey?: string | undefined;
-}
-
-export function getOptionalSupabaseAdapterEnv(): SupabaseAdapterEnv {
-  return {
-    url: process.env[envKeys.supabaseUrl],
-    anonKey: process.env[envKeys.supabaseAnonKey],
-    serviceRoleKey: process.env[envKeys.supabaseServiceRoleKey],
-  };
 }

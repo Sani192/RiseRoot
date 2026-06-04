@@ -36,8 +36,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     const updateViewportVars = () => {
       const viewport = window.visualViewport;
       if (!viewport) return;
-      const keyboardInset = Math.max(window.innerHeight - viewport.height - viewport.offsetTop, 0);
-      document.documentElement.style.setProperty("--rr-keyboard-inset", `${keyboardInset}px`);
+      const keyboardInset = Math.max(
+        window.innerHeight - viewport.height - viewport.offsetTop,
+        0,
+      );
+      document.documentElement.style.setProperty(
+        "--rr-keyboard-inset",
+        `${keyboardInset}px`,
+      );
     };
 
     updateViewportVars();
@@ -54,16 +60,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     <>
       <main className="min-h-screen px-4 pt-6 sm:px-6 lg:pb-8">
         <KeyboardSafeScrollRegion className="pb-[var(--rr-page-bottom-offset)]">
-        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/70 p-3">
-          <label className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Selected date</label>
-          <input
-            className="min-h-10 rounded-xl border border-white/60 bg-white px-3 text-sm"
-            type="date"
-            value={selectedDate}
-            onChange={(event) => setSelectedDate(event.target.value)}
-          />
-        </div>
-        {children}
+          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/70 p-3">
+            <label className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              Selected date
+            </label>
+            <input
+              className="min-h-10 rounded-xl border border-white/60 bg-white px-3 text-sm"
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+            />
+          </div>
+          {children}
         </KeyboardSafeScrollRegion>
       </main>
       <nav

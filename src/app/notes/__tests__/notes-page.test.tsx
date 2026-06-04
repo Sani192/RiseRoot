@@ -1,16 +1,42 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
-import NotesPage from '@/app/notes/page';
+vi.mock("@/lib/services/planned-resources", () => ({
+  plannedResourcesService: {
+    notes: {
+      get: vi.fn().mockResolvedValue({ body: "" }),
+      save: vi
+        .fn()
+        .mockResolvedValue({ body: "Today I felt steady and focused." }),
+    },
+  },
+}));
 
-describe('NotesPage editing', () => {
-  it('allows editing freeform notes', () => {
-    render(<NotesPage />);
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/notes",
+}));
 
-    const noteInput = screen.getByPlaceholderText(/Write anything that should stay with this day/i);
+import NotesPage from "@/app/notes/page";
+import { SelectedDateProvider } from "@/features/selected-date-context";
 
-    fireEvent.change(noteInput, { target: { value: 'Today I felt steady and focused.' } });
+describe("NotesPage editing", () => {
+  it("allows editing freeform notes", async () => {
+    render(
+      <SelectedDateProvider>
+        <NotesPage />
+      </SelectedDateProvider>,
+    );
 
-    expect(noteInput).toHaveValue('Today I felt steady and focused.');
+    const noteInput = screen.getByPlaceholderText(/Write your note/i);
+
+    await waitFor(() => {
+      expect(noteInput).not.toBeDisabled();
+    });
+
+    fireEvent.change(noteInput, {
+      target: { value: "Today I felt steady and focused." },
+    });
+
+    expect(noteInput).toHaveValue("Today I felt steady and focused.");
   });
 });

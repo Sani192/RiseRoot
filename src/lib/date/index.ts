@@ -10,7 +10,8 @@ export function isIsoLocalDate(value: string): boolean {
 }
 
 export function parseUtcIsoDateOnly(value: string): Date {
-  if (!isIsoLocalDate(value)) throw new Error(`Invalid ISO local date: ${value}`);
+  if (!isIsoLocalDate(value))
+    throw new Error(`Invalid ISO local date: ${value}`);
   return parseISO(`${value}T00:00:00.000Z`);
 }
 
@@ -24,22 +25,38 @@ export function toUtcIsoDateKey(value: Date): string {
   return format(value, "yyyy-MM-dd");
 }
 
-export function utcInstantToLocalIsoDate(value: Date | string, timeZone: string): string {
+export function utcInstantToLocalIsoDate(
+  value: Date | string,
+  timeZone: string,
+): string {
   return formatInTimeZone(normalizeUtcDate(value), timeZone, "yyyy-MM-dd");
 }
 
-export function localDateToUtcDayStart(localDate: string, timeZone: string): Date {
+export function localDateToUtcDayStart(
+  localDate: string,
+  timeZone: string,
+): Date {
   return fromZonedTime(`${localDate}T00:00:00`, timeZone);
 }
 
-export function localDateUtcDayRange(localDate: string, timeZone: string): UtcDayRange {
+export function localDateUtcDayRange(
+  localDate: string,
+  timeZone: string,
+): UtcDayRange {
   const start = localDateToUtcDayStart(localDate, timeZone);
-  const nextLocalDate = format(addDays(parseUtcIsoDateOnly(localDate), 1), "yyyy-MM-dd");
+  const nextLocalDate = format(
+    addDays(parseUtcIsoDateOnly(localDate), 1),
+    "yyyy-MM-dd",
+  );
   const endExclusive = localDateToUtcDayStart(nextLocalDate, timeZone);
   return { start, endExclusive };
 }
 
-export function formatLocalDisplayDate(value: Date | string, timeZone: string, pattern = "MMM d, yyyy"): string {
+export function formatLocalDisplayDate(
+  value: Date | string,
+  timeZone: string,
+  pattern = "MMM d, yyyy",
+): string {
   return formatInTimeZone(normalizeUtcDate(value), timeZone, pattern);
 }
 
@@ -47,15 +64,22 @@ export function formatUtcIsoTimestamp(value: Date = new Date()): string {
   return normalizeUtcDate(value).toISOString();
 }
 
-export function generateSafeLocalDateKey(value: Date, timeZone: string): string {
+export function generateSafeLocalDateKey(
+  value: Date,
+  timeZone: string,
+): string {
   return formatInTimeZone(value, timeZone, "yyyy-MM-dd");
 }
 
-export function eachUtcDateKeyInRange(fromDate: string, toDate: string): string[] {
+export function eachUtcDateKeyInRange(
+  fromDate: string,
+  toDate: string,
+): string[] {
   const from = parseUtcIsoDateOnly(fromDate);
   const to = parseUtcIsoDateOnly(toDate);
   const out: string[] = [];
-  for (let cursor = from; cursor <= to; cursor = addDays(cursor, 1)) out.push(toUtcIsoDateKey(cursor));
+  for (let cursor = from; cursor <= to; cursor = addDays(cursor, 1))
+    out.push(toUtcIsoDateKey(cursor));
   return out;
 }
 
@@ -67,5 +91,7 @@ export function localWeekdayIndex(value: Date, timeZone: string): number {
 export const toLocalIsoDate = utcInstantToLocalIsoDate;
 export const localDayStartUtc = localDateToUtcDayStart;
 export function localDayEndUtc(localDate: string, timeZone: string): Date {
-  return new Date(localDateUtcDayRange(localDate, timeZone).endExclusive.getTime() - 1);
+  return new Date(
+    localDateUtcDayRange(localDate, timeZone).endExclusive.getTime() - 1,
+  );
 }

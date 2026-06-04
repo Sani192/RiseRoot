@@ -1,6 +1,15 @@
-import { noteRepository, taskRepository, weightRepository, workoutRepository } from "@/repositories";
+import {
+  noteRepository,
+  taskRepository,
+  weightRepository,
+  workoutRepository,
+} from "@/repositories";
 
-export async function getDayAggregate(input: { userId: string; date: string; timezone: string }) {
+export async function getDayAggregate(input: {
+  userId: string;
+  date: string;
+  timezone: string;
+}) {
   const [tasks, workouts, note, logs] = await Promise.all([
     taskRepository.listByDate(input.userId, input.date),
     workoutRepository.listUpcoming(input.userId),
@@ -11,8 +20,18 @@ export async function getDayAggregate(input: { userId: string; date: string; tim
   return {
     date: input.date,
     timezone: input.timezone,
-    tasks: tasks.map((task) => ({ id: task.id, title: task.title, status: task.status, completed: task.status === "completed" })),
-    workouts: workouts.map((w) => ({ id: w.id, title: w.name, status: w.status, complete: w.status === "completed" })),
+    tasks: tasks.map((task) => ({
+      id: task.id,
+      title: task.title,
+      status: task.status,
+      completed: task.status === "completed",
+    })),
+    workouts: workouts.map((w) => ({
+      id: w.id,
+      title: w.name,
+      status: w.status,
+      complete: w.status === "completed",
+    })),
     note: note ? { body: note.body, updatedAt: note.updatedAt } : null,
     logs: logs.map((row) => ({
       id: row.id,

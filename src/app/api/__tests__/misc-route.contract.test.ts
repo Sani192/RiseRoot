@@ -6,7 +6,7 @@ const { weightRepository } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => ({ weightRepository }));
 
 import { GET as mealsGet } from "@/app/api/meals/route";
-import { localDevUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/identity/authentication";
 import { GET as calendarGet } from "@/app/api/calendar/history/route";
 import { POST as logsPost } from "@/app/api/logs/route";
 import { PUT as prefPut } from "@/app/api/notifications/preferences/route";

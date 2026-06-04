@@ -1,29 +1,31 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
-import { TodayOverview } from '@/components/today/today-overview';
+vi.mock("@/lib/services/persisted-records", () => ({
+  loadTasksForDate: vi.fn().mockResolvedValue([
+    { id: "task-1", title: "Hydrate", status: "completed" },
+    { id: "task-2", title: "Ten-minute outside walk", status: "todo" },
+    { id: "task-3", title: "Evening wind-down", status: "todo" },
+  ]),
+}));
 
-describe('TodayOverview interactions', () => {
-  it('updates progress when completing a task', () => {
+import { TodayOverview } from "@/components/today/today-overview";
+
+describe("TodayOverview persisted task summary", () => {
+  it("shows progress for tasks loaded from persisted records", async () => {
     render(<TodayOverview />);
 
-    expect(screen.getByText(/1\/3 complete/i)).toBeInTheDocument();
+    expect(screen.getByText(/loading today's records/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Ten-minute outside walk/i }));
+    await waitFor(() => {
+      expect(
+        screen.getByText(/1 of 3 complete \(33%\)\./i),
+      ).toBeInTheDocument();
+    });
 
-    expect(screen.getByText(/2\/3 complete/i)).toBeInTheDocument();
-  });
-
-  it('lets user select mood and energy options', () => {
-    render(<TodayOverview />);
-
-    const bright = screen.getByRole('button', { name: 'Bright' });
-    const high = screen.getByRole('button', { name: 'High' });
-
-    fireEvent.click(bright);
-    fireEvent.click(high);
-
-    expect(bright).toHaveClass('bg-primary');
-    expect(high).toHaveClass('bg-primary');
+    expect(screen.getByText(/Hydrate · completed/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Ten-minute outside walk · todo/i),
+    ).toBeInTheDocument();
   });
 });

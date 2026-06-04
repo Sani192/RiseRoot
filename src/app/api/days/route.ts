@@ -11,7 +11,7 @@ import { getDayAggregate } from "@/lib/services/day-aggregate";
 import {
   assertAuthorizedUserId,
   requireAuthenticatedUser,
-} from "@/lib/api/identity";
+} from "@/lib/identity/authentication";
 
 const querySchema = z
   .object({

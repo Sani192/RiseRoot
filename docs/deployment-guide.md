@@ -12,16 +12,13 @@ RiseRoot is deployable to any platform that can run a Next.js application and co
 
 ## Required environment variables
 
-| Variable                        |         Required | Scope  | Notes                                                            |
-| ------------------------------- | ---------------: | ------ | ---------------------------------------------------------------- |
-| `DATABASE_URL`                  |              Yes | Server | PostgreSQL connection string.                                    |
-| `NEXT_PUBLIC_APP_URL`           |      Recommended | Public | Canonical app URL for the deployed environment.                  |
-| `NEXT_PUBLIC_SUPABASE_URL`      |         Optional | Public | Required only when using Supabase auth/client features.          |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` |         Optional | Public | Required only when using Supabase auth/client features.          |
-| `SUPABASE_SERVICE_ROLE_KEY`     |         Optional | Server | Use only when server-side Supabase admin verification is needed. |
-| `LOCAL_DEV_USER_ID`             | No in production | Server | Local development only; production startup rejects it.           |
-| `RISEROOT_DEV_USER_ID`          | No in production | Server | Legacy local development only.                                   |
-| `NEXT_PUBLIC_APP_USER_ID`       | No in production | Public | Legacy value; must never grant production identity.              |
+| Variable                  |         Required | Scope  | Notes                                                  |
+| ------------------------- | ---------------: | ------ | ------------------------------------------------------ |
+| `DATABASE_URL`            |              Yes | Server | PostgreSQL connection string.                          |
+| `NEXT_PUBLIC_APP_URL`     |      Recommended | Public | Canonical app URL for the deployed environment.        |
+| `LOCAL_DEV_USER_ID`       | No in production | Server | Local development only; production startup rejects it. |
+| `RISEROOT_DEV_USER_ID`    | No in production | Server | Legacy local development only.                         |
+| `NEXT_PUBLIC_APP_USER_ID` | No in production | Public | Legacy value; must never grant production identity.    |
 
 ## Pre-deployment checklist
 
@@ -51,16 +48,15 @@ Render steps:
 1. Create or connect a PostgreSQL database.
 2. Copy the internal or external PostgreSQL connection string into the web service as `DATABASE_URL`.
 3. Add `NEXT_PUBLIC_APP_URL` with the Render service URL or custom domain.
-4. Add optional Supabase variables only if using Supabase auth.
-5. Apply migrations from a one-off job, local trusted machine, or CI job:
+4. Apply migrations from a one-off job, local trusted machine, or CI job:
 
    ```bash
-   psql "$DATABASE_URL" -f supabase/migrations/20260518000000_create_core_schema.sql
+   psql "$DATABASE_URL" -f migrations/20260518000000_create_core_schema.sql
    ```
 
-6. Deploy the web service.
-7. Check logs for environment validation errors.
-8. Run post-deploy smoke tests.
+5. Deploy the web service.
+6. Check logs for environment validation errors.
+7. Run post-deploy smoke tests.
 
 Portability note: Render-specific configuration should stay in platform settings. Application code should not branch on Render environment variables.
 
@@ -149,7 +145,7 @@ VPS steps:
 2. Apply migrations inside a one-off container or from the host:
 
    ```bash
-   docker compose exec -T db psql -U postgres -d riseroot < supabase/migrations/20260518000000_create_core_schema.sql
+   docker compose exec -T db psql -U postgres -d riseroot < migrations/20260518000000_create_core_schema.sql
    ```
 
 3. Put a reverse proxy such as Caddy, Nginx, or Traefik in front of the app for TLS.

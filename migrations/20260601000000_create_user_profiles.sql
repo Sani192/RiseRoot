@@ -26,17 +26,3 @@ create trigger set_user_profiles_updated_at
 before update on public.user_profiles
 for each row execute function public.set_updated_at();
 
-alter table public.user_profiles enable row level security;
-
-drop policy if exists user_profiles_owner_select on public.user_profiles;
-create policy user_profiles_owner_select on public.user_profiles
-for select using (auth.uid() = user_id);
-drop policy if exists user_profiles_owner_insert on public.user_profiles;
-create policy user_profiles_owner_insert on public.user_profiles
-for insert with check (auth.uid() = user_id);
-drop policy if exists user_profiles_owner_update on public.user_profiles;
-create policy user_profiles_owner_update on public.user_profiles
-for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
-drop policy if exists user_profiles_owner_delete on public.user_profiles;
-create policy user_profiles_owner_delete on public.user_profiles
-for delete using (auth.uid() = user_id);

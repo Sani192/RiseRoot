@@ -8,7 +8,7 @@ const { userRepository } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => ({ userRepository }));
 
 import { POST } from "@/app/api/onboarding/profile/route";
-import { localDevUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/identity/authentication";
 
 const userId = "00000000-0000-4000-8000-000000000001";
 

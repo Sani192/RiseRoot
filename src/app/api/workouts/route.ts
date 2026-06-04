@@ -10,7 +10,7 @@ import { nonEmptyStringSchema } from "@/lib/api/validation";
 import {
   assertAuthorizedUserId,
   requireAuthenticatedUser,
-} from "@/lib/api/identity";
+} from "@/lib/identity/authentication";
 
 const listQuerySchema = z
   .object({ userId: nonEmptyStringSchema.optional() })

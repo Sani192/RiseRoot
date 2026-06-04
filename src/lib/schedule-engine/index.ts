@@ -1,10 +1,18 @@
 import { createHash } from "node:crypto";
 
-import { eachUtcDateKeyInRange, localDateToUtcDayStart, localWeekdayIndex, utcInstantToLocalIsoDate } from "@/lib/date";
+import {
+  eachUtcDateKeyInRange,
+  localDateToUtcDayStart,
+  localWeekdayIndex,
+  utcInstantToLocalIsoDate,
+} from "@/lib/date";
 
 export type RecurrenceFrequency = "daily" | "weekly";
 
-export type RecurrenceRuleMetadata = Record<string, string | number | boolean | null>;
+export type RecurrenceRuleMetadata = Record<
+  string,
+  string | number | boolean | null
+>;
 
 export type RecurrenceDefinition = {
   id: string;
@@ -30,7 +38,11 @@ export type RecurrenceRangeEvaluationInput = {
   recurrence: RecurrenceDefinition;
 };
 
-export function createGenerationKey(userId: string, recurrenceId: string, localDate: string): string {
+export function createGenerationKey(
+  userId: string,
+  recurrenceId: string,
+  localDate: string,
+): string {
   return `${userId}:${recurrenceId}:${localDate}`;
 }
 
@@ -39,13 +51,26 @@ export function deterministicUuid(input: string): string {
   return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
 }
 
-export function occursOnLocalDate({ userTimeZone, localDate, recurrence }: RecurrenceEvaluationInput): boolean {
+export function occursOnLocalDate({
+  userTimeZone,
+  localDate,
+  recurrence,
+}: RecurrenceEvaluationInput): boolean {
   const interval = Math.max(recurrence.interval ?? 1, 1);
-  if (localDate < recurrence.startDate || (recurrence.endDate && localDate > recurrence.endDate)) return false;
+  if (
+    localDate < recurrence.startDate ||
+    (recurrence.endDate && localDate > recurrence.endDate)
+  )
+    return false;
 
-  const startLocalUtc = localDateToUtcDayStart(recurrence.startDate, userTimeZone);
+  const startLocalUtc = localDateToUtcDayStart(
+    recurrence.startDate,
+    userTimeZone,
+  );
   const targetLocalUtc = localDateToUtcDayStart(localDate, userTimeZone);
-  const daysBetween = Math.floor((targetLocalUtc.getTime() - startLocalUtc.getTime()) / 86_400_000);
+  const daysBetween = Math.floor(
+    (targetLocalUtc.getTime() - startLocalUtc.getTime()) / 86_400_000,
+  );
 
   if (recurrence.frequency === "daily") return daysBetween % interval === 0;
 
@@ -56,14 +81,26 @@ export function occursOnLocalDate({ userTimeZone, localDate, recurrence }: Recur
   return weeksBetween % interval === 0 && allowedWeekdays.includes(weekday);
 }
 
-export function generateOccurrences({ userTimeZone, recurrence, localDateRange }: RecurrenceRangeEvaluationInput): string[] {
-  return eachUtcDateKeyInRange(localDateRange.from, localDateRange.to).filter((localDate) => occursOnLocalDate({ userTimeZone, localDate, recurrence }));
+export function generateOccurrences({
+  userTimeZone,
+  recurrence,
+  localDateRange,
+}: RecurrenceRangeEvaluationInput): string[] {
+  return eachUtcDateKeyInRange(localDateRange.from, localDateRange.to).filter(
+    (localDate) => occursOnLocalDate({ userTimeZone, localDate, recurrence }),
+  );
 }
 
-export function toUtcPersistenceTimestamp(localDate: string, userTimeZone: string): string {
+export function toUtcPersistenceTimestamp(
+  localDate: string,
+  userTimeZone: string,
+): string {
   return localDateToUtcDayStart(localDate, userTimeZone).toISOString();
 }
 
-export function fromUtcPersistenceTimestampToLocalDate(utcTimestamp: string, userTimeZone: string): string {
+export function fromUtcPersistenceTimestampToLocalDate(
+  utcTimestamp: string,
+  userTimeZone: string,
+): string {
   return utcInstantToLocalIsoDate(new Date(utcTimestamp), userTimeZone);
 }

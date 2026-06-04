@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
-import { requireAuthenticatedUser } from "@/lib/api/identity";
+import { requireAuthenticatedUser } from "@/lib/identity/authentication";
 import { parseJsonBody, withApiHandler } from "@/lib/api/response";
 import { ianaTimezoneSchema, nonEmptyStringSchema } from "@/lib/api/validation";
 import { userRepository } from "@/repositories";
