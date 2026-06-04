@@ -13,7 +13,7 @@ The following provider categories are supported when they expose a normal Postgr
 | Provider category               | Examples                                                                   | Support notes                                                                                  |
 | ------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Managed app-platform PostgreSQL | Render PostgreSQL, Railway PostgreSQL, Heroku Postgres                     | Recommended for simple deployments; verify extension availability and connection limits.       |
-| Serverless/branching PostgreSQL | Neon, Supabase Postgres                                                    | Suitable if connection pooling and cold-start behavior are configured for the Next.js runtime. |
+| Serverless/branching PostgreSQL | Neon, Railway Postgres                                                     | Suitable if connection pooling and cold-start behavior are configured for the Next.js runtime. |
 | Cloud-managed PostgreSQL        | AWS RDS/Aurora PostgreSQL, Google Cloud SQL, Azure Database for PostgreSQL | Suitable for production; requires explicit networking, SSL, backups, and IAM/firewall setup.   |
 | Self-hosted PostgreSQL          | Docker, VM packages, Kubernetes operator                                   | Suitable when operations team owns backups, upgrades, monitoring, and security patching.       |
 
@@ -106,6 +106,6 @@ A database provider is accepted for RiseRoot when:
 ## Non-goals
 
 - Supporting non-PostgreSQL databases without an explicit new adapter.
-- Depending on Supabase-only database APIs for core persistence.
+- Depending on provider-only database APIs for core persistence.
 - Replacing migrations with manual dashboard changes.
 - Allowing provider-specific SQL to leak into UI or domain modules.

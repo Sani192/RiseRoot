@@ -1,24 +1,42 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { toLocalIsoDate } from "@/features/schedule-engine";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { toLocalIsoDate } from "@/lib/date";
 
 type SelectedDateContextValue = {
   selectedDate: string;
   setSelectedDate: (next: string) => void;
 };
 
-const SelectedDateContext = createContext<SelectedDateContextValue | null>(null);
+const SelectedDateContext = createContext<SelectedDateContextValue | null>(
+  null,
+);
 
 function todayIso() {
-  return toLocalIsoDate(new Date(), Intl.DateTimeFormat().resolvedOptions().timeZone);
+  return toLocalIsoDate(
+    new Date(),
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
 }
 
 export function SelectedDateProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<string>(todayIso);
-  const value = useMemo(() => ({ selectedDate, setSelectedDate }), [selectedDate]);
+  const value = useMemo(
+    () => ({ selectedDate, setSelectedDate }),
+    [selectedDate],
+  );
 
-  return <SelectedDateContext.Provider value={value}>{children}</SelectedDateContext.Provider>;
+  return (
+    <SelectedDateContext.Provider value={value}>
+      {children}
+    </SelectedDateContext.Provider>
+  );
 }
 
 export function useSelectedDate() {

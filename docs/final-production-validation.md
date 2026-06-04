@@ -23,7 +23,7 @@ Validate a local environment before deploying from the same commit:
 2. Create `.env.local` with at least:
    - `DATABASE_URL=postgres://...`
    - `LOCAL_DEV_USER_ID=<uuid>` for local-only API testing.
-3. Apply the SQL in `supabase/migrations/20260518000000_create_core_schema.sql` to the local PostgreSQL database.
+3. Apply the SQL in `migrations/20260518000000_create_core_schema.sql` to the local PostgreSQL database.
 4. Run the database smoke check:
    - `npm run db:smoke` verifies the runtime can load the PostgreSQL and Drizzle packages.
    - `DB_SMOKE_CONNECT=1 npm run db:smoke` executes `select 1` against `DATABASE_URL`.
@@ -98,14 +98,14 @@ Key production invariants:
 
 ## Remaining risks
 
-| Risk                                                                              | Severity | Mitigation                                                                                                                          |
-| --------------------------------------------------------------------------------- | -------: | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Production authentication configuration is environment-dependent.                 |     High | Configure Supabase auth or another server-verified bearer-token source; test unauthenticated and cross-user failures before launch. |
-| Migration execution is not automated in repository scripts.                       |     High | Add CI/CD migration step or an explicit release runbook for the chosen provider.                                                    |
-| Observability and incident response are not defined in code.                      |   Medium | Add provider logs, request tracing, uptime checks, and error aggregation before public launch.                                      |
-| Backup/restore validation is provider-specific.                                   |   Medium | Enable automated backups and perform at least one restore drill before launch.                                                      |
-| Some product screens may still contain placeholder or partially integrated flows. |   Medium | Gate or label incomplete flows; verify each launched workflow persists and reloads correctly.                                       |
-| Connection pooling needs provider-specific tuning under load.                     |   Medium | Use provider pooling or PgBouncer-compatible settings; load test before opening traffic.                                            |
+| Risk                                                                              | Severity | Mitigation                                                                                                   |
+| --------------------------------------------------------------------------------- | -------: | ------------------------------------------------------------------------------------------------------------ |
+| Production authentication configuration is environment-dependent.                 |     High | Configure a server-verified bearer-token source; test unauthenticated and cross-user failures before launch. |
+| Migration execution is not automated in repository scripts.                       |     High | Add CI/CD migration step or an explicit release runbook for the chosen provider.                             |
+| Observability and incident response are not defined in code.                      |   Medium | Add provider logs, request tracing, uptime checks, and error aggregation before public launch.               |
+| Backup/restore validation is provider-specific.                                   |   Medium | Enable automated backups and perform at least one restore drill before launch.                               |
+| Some product screens may still contain placeholder or partially integrated flows. |   Medium | Gate or label incomplete flows; verify each launched workflow persists and reloads correctly.                |
+| Connection pooling needs provider-specific tuning under load.                     |   Medium | Use provider pooling or PgBouncer-compatible settings; load test before opening traffic.                     |
 
 ## Deployment readiness
 
@@ -117,7 +117,7 @@ A deployment is ready to receive controlled production traffic only after all of
 - The core schema migration has been applied to the production database.
 - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass from a clean checkout.
 - `DB_SMOKE_CONNECT=1 npm run db:smoke` passes against the production or staging database from an approved network path.
-- The deployment platform injects `NEXT_PUBLIC_APP_URL` and any optional public Supabase variables appropriate for the environment.
+- The deployment platform injects `NEXT_PUBLIC_APP_URL` and public variables appropriate for the environment.
 - Backups, restore procedure, logs, monitoring, and rollback steps are documented for the selected provider.
 - A smoke test confirms API authentication, day aggregation, notes read/write, and core page rendering after deployment.
 

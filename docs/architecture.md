@@ -63,6 +63,17 @@ API expectations:
 - Design for authenticated user ownership, even if authentication is not implemented in Phase 1.
 - Keep Phase 1 routes, if created, as stubs or mocks only.
 
+## Adapter Boundaries
+
+RiseRoot keeps external services at the infrastructure edge rather than making them dependencies of core business logic. Application services, domain modules, and API route handlers should depend on provider-neutral interfaces and modules.
+
+Boundary rules:
+
+- Session and identity helpers live under `src/lib/identity/*`; route handlers should import authentication helpers from that provider-neutral module.
+- Bearer-token verification is represented by the generic `BearerIdentityProvider` contract and can be supplied by an infrastructure adapter when production authentication is introduced.
+- Persistence code should flow through the provider-neutral repository facade in `src/repositories/index.ts`, which currently selects Drizzle/PostgreSQL repositories.
+- New provider-specific code should be placed in an infrastructure adapter and wired through an interface; do not let domain, feature, or API modules import provider SDKs.
+
 ## State Management Approach
 
 State should be divided into local UI state, selected day state, server/cache state, and persisted user preferences.

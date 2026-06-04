@@ -12,14 +12,14 @@ This document lists production issues that have been addressed, their root cause
 ## 2. Development identity could leak into production
 
 - **Root cause:** Development identity values were not fully separated from production authentication expectations.
-- **Changed files:** `src/lib/env.ts`, `src/lib/api/identity.ts`, `src/lib/supabase/session.ts`, `src/lib/env.test.ts`.
+- **Changed files:** `src/lib/env.ts`, `src/lib/identity/authentication.ts`, `src/lib/identity/session.ts`, `src/lib/env.test.ts`.
 - **Fix:** Added production startup rejection for `LOCAL_DEV_USER_ID`, `RISEROOT_DEV_USER_ID`, and `NEXT_PUBLIC_APP_USER_ID`; kept local fallback server-only.
 - **Architectural impact:** Production identity is now forced through authenticated server-side resolution instead of public or local test values.
 
 ## 3. Cross-user access risk at API boundaries
 
 - **Root cause:** User identifiers supplied by clients can be unsafe unless checked against authenticated identity.
-- **Changed files:** `src/lib/api/identity.ts`, `src/app/api/days/route.ts`, `src/app/api/notes/route.ts`, `src/app/api/tasks/route.ts`, `src/app/api/workouts/route.ts`, `src/app/api/meals/route.ts`, `src/app/api/logs/route.ts`, `src/app/api/calendar/history/route.ts`, `src/app/api/notifications/preferences/route.ts`.
+- **Changed files:** `src/lib/identity/authentication.ts`, `src/app/api/days/route.ts`, `src/app/api/notes/route.ts`, `src/app/api/tasks/route.ts`, `src/app/api/workouts/route.ts`, `src/app/api/meals/route.ts`, `src/app/api/logs/route.ts`, `src/app/api/calendar/history/route.ts`, `src/app/api/notifications/preferences/route.ts`.
 - **Fix:** Added authenticated user resolution and `assertAuthorizedUserId` checks so client-supplied user IDs cannot access another user's records.
 - **Architectural impact:** Ownership enforcement moved into a reusable API boundary pattern.
 
@@ -30,12 +30,12 @@ This document lists production issues that have been addressed, their root cause
 - **Fix:** Added shared API error types, response wrappers, JSON parsing helpers, and Zod validation schemas.
 - **Architectural impact:** API routes are thinner and more uniform, enabling contract tests and safer client integration.
 
-## 5. Database provider coupling through direct Supabase-oriented paths
+## 5. Database provider coupling through direct legacy provider-oriented paths
 
-- **Root cause:** Core persistence was historically planned around Supabase-specific utilities, which made provider portability unclear.
-- **Changed files:** `src/lib/db/index.ts`, `src/infrastructure/orm/drizzle-repositories.ts`, `src/infrastructure/orm/mappers.ts`, `src/repositories/index.ts`, `scripts/db-smoke.mjs`.
+- **Root cause:** Core persistence was historically planned around provider-specific utilities, which made provider portability unclear.
+- **Changed files:** `src/lib/db/index.ts`, `src/infrastructure/orm/drizzle-repositories.ts`, `src/infrastructure/orm/drizzle-repositories.ts`, `src/repositories/index.ts`, `scripts/db-smoke.mjs`.
 - **Fix:** Introduced centralized Drizzle/postgres initialization, repository implementations, and a database smoke script based on `DATABASE_URL`.
-- **Architectural impact:** Core data access is now PostgreSQL-provider neutral and can run on Render, Railway, Supabase Postgres, Neon, RDS, Cloud SQL, or self-hosted PostgreSQL.
+- **Architectural impact:** Core data access is now PostgreSQL-provider neutral and can run on Render, Railway, Neon, RDS, Cloud SQL, or self-hosted PostgreSQL.
 
 ## 6. Timezone-dependent local date derivation
 
@@ -61,7 +61,7 @@ This document lists production issues that have been addressed, their root cause
 ## 9. Repository row/domain shape drift
 
 - **Root cause:** Database rows use snake_case while domain models use application-oriented naming; direct mapping at call sites increases drift.
-- **Changed files:** `src/infrastructure/orm/mappers.ts`, `src/infrastructure/orm/drizzle-repositories.ts`, `src/infrastructure/orm/__tests__/drizzle-repositories.test.ts`, `src/infrastructure/orm/__tests__/drizzle-repositories.postgres.test.ts`.
+- **Changed files:** `src/infrastructure/orm/drizzle-repositories.ts`, `src/infrastructure/orm/drizzle-repositories.ts`, `src/infrastructure/orm/__tests__/drizzle-repositories.test.ts`, `src/infrastructure/orm/__tests__/drizzle-repositories.postgres.test.ts`.
 - **Fix:** Added repository mapper boundaries and tests around repository behavior.
 - **Architectural impact:** Persistence concerns are isolated from domain and presentation code, making schema evolution safer.
 

@@ -7,7 +7,7 @@ const { getDayAggregate } = vi.hoisted(() => ({ getDayAggregate: vi.fn() }));
 vi.mock("@/lib/services/day-aggregate", () => ({ getDayAggregate }));
 
 import { GET } from "@/app/api/days/route";
-import { localDevUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/identity/authentication";
 
 describe("days API contract", () => {
   beforeEach(() => {

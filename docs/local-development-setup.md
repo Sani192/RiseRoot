@@ -47,7 +47,7 @@ psql "$DATABASE_URL" -c 'create extension if not exists pgcrypto;'
 Apply the schema migration:
 
 ```bash
-psql "$DATABASE_URL" -f supabase/migrations/20260518000000_create_core_schema.sql
+psql "$DATABASE_URL" -f migrations/20260518000000_create_core_schema.sql
 ```
 
 Create a local user that matches `LOCAL_DEV_USER_ID` if one is not inserted by seed data:
@@ -87,7 +87,7 @@ export DATABASE_URL=postgres://postgres:postgres@localhost:5432/riseroot
 Apply the migration after the container is ready:
 
 ```bash
-psql "$DATABASE_URL" -f supabase/migrations/20260518000000_create_core_schema.sql
+psql "$DATABASE_URL" -f migrations/20260518000000_create_core_schema.sql
 ```
 
 Stop and start the container with:
@@ -105,7 +105,7 @@ docker rm -f riseroot-postgres
 
 ## Migration instructions
 
-The repository currently stores the core schema as SQL under `supabase/migrations/`.
+The repository currently stores the core schema as SQL under `migrations/`.
 
 Local migration workflow:
 
@@ -117,7 +117,7 @@ Local migration workflow:
 Example:
 
 ```bash
-for file in supabase/migrations/*.sql; do
+for file in migrations/*.sql; do
   psql "$DATABASE_URL" -f "$file"
 done
 ```
@@ -166,7 +166,7 @@ For a disposable local database:
 ```bash
 dropdb --if-exists riseroot
 createdb riseroot
-psql "$DATABASE_URL" -f supabase/migrations/20260518000000_create_core_schema.sql
+psql "$DATABASE_URL" -f migrations/20260518000000_create_core_schema.sql
 ```
 
 For Docker:
@@ -178,7 +178,7 @@ docker run --name riseroot-postgres \
   -e POSTGRES_DB=riseroot \
   -p 5432:5432 \
   -d postgres:16
-psql "$DATABASE_URL" -f supabase/migrations/20260518000000_create_core_schema.sql
+psql "$DATABASE_URL" -f migrations/20260518000000_create_core_schema.sql
 ```
 
 After reset, reinsert the local development user and any test data needed for the workflow you are validating.

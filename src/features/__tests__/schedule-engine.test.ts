@@ -33,13 +33,33 @@ describe("schedule engine", () => {
       startDate: "2026-01-01",
     };
 
-    const occurrences = generateOccurrences({ userTimeZone: "America/New_York", recurrence, localDateRange: { from: "2025-12-29", to: "2026-01-12" } });
-    expect(occurrences).toEqual(["2026-01-02", "2026-01-05", "2026-01-07", "2026-01-09", "2026-01-12"]);
-    expect(occursOnLocalDate({ userTimeZone: "America/New_York", recurrence, localDate: "2026-01-06" })).toBe(false);
+    const occurrences = generateOccurrences({
+      userTimeZone: "America/New_York",
+      recurrence,
+      localDateRange: { from: "2025-12-29", to: "2026-01-12" },
+    });
+    expect(occurrences).toEqual([
+      "2026-01-02",
+      "2026-01-05",
+      "2026-01-07",
+      "2026-01-09",
+      "2026-01-12",
+    ]);
+    expect(
+      occursOnLocalDate({
+        userTimeZone: "America/New_York",
+        recurrence,
+        localDate: "2026-01-06",
+      }),
+    ).toBe(false);
   });
 
   it("creates idempotent generation keys and UUIDs", () => {
-    const key = createGenerationKey("user-1", "daily-plan:monday-priority-map", "2026-05-25");
+    const key = createGenerationKey(
+      "user-1",
+      "daily-plan:monday-priority-map",
+      "2026-05-25",
+    );
     expect(key).toBe("user-1:daily-plan:monday-priority-map:2026-05-25");
     expect(deterministicUuid(key)).toBe(deterministicUuid(key));
     expect(deterministicUuid(key)).toMatch(/[0-9a-f-]{36}/);

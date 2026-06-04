@@ -7,7 +7,7 @@ const { repo } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => ({ workoutRepository: repo }));
 
 import { GET, POST } from "@/app/api/workouts/route";
-import { localDevUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/identity/authentication";
 
 describe("workouts API contract", () => {
   beforeEach(() => {

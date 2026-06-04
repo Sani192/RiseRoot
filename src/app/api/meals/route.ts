@@ -14,7 +14,7 @@ import {
 import {
   assertAuthorizedUserId,
   requireAuthenticatedUser,
-} from "@/lib/api/identity";
+} from "@/lib/identity/authentication";
 import { mealSuggestionRepository } from "@/repositories";
 import { ApiError } from "@/lib/api/errors";
 import { z } from "zod";

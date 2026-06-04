@@ -7,7 +7,7 @@ This document describes how RiseRoot keeps its persistence layer portable across
 RiseRoot targets **standards-compliant PostgreSQL** deployments, including:
 
 - local Docker/Postgres for development
-- managed Postgres offerings (for example Supabase Postgres, Neon, Railway Postgres, Render Postgres, RDS/Aurora Postgres, Cloud SQL Postgres)
+- managed Postgres offerings (for example Neon, Railway Postgres, Render Postgres, RDS/Aurora Postgres, Cloud SQL Postgres)
 
 Portability principle: provider choice should be an infrastructure concern, not an application rewrite.
 
@@ -17,7 +17,7 @@ The codebase uses Drizzle as the primary typed database interface over a `postgr
 
 - Database bootstrap reads `DATABASE_URL` and creates a shared Drizzle client. (`src/lib/db/index.ts`)
 - Environment mapping keeps `DATABASE_URL` as the required canonical variable. (`src/lib/env.ts`)
-- ORM mappers and repositories isolate row-shape conversions and domain models, reducing direct provider coupling. (`src/infrastructure/orm/mappers.ts`, `src/repositories/index.ts`)
+- ORM mappers and repositories isolate row-shape conversions and domain models, reducing direct provider coupling. (`src/infrastructure/orm/drizzle-repositories.ts`, `src/repositories/index.ts`)
 
 Design goals:
 
@@ -25,7 +25,15 @@ Design goals:
 - Keep domain modules independent of provider-specific SQL extensions.
 - Centralize connection policy in one place.
 
-## 3) Migration strategy and provider-agnostic assumptions
+## 3) Adapter boundaries
+
+Provider-specific adapters are allowed only at the infrastructure edge. Core business logic, feature modules, and API routes should import provider-neutral identity and repository contracts rather than provider modules or SDKs.
+
+- Identity/session code lives in `src/lib/identity/*`. The local development user helper is provider-neutral, and bearer-token verification is represented by a generic identity-provider interface.
+- Production authentication adapters should implement `BearerIdentityProvider` without leaking provider SDKs into API routes or domain modules.
+- The default repository facade should continue to target Drizzle/PostgreSQL through `DATABASE_URL`, so replacing one PostgreSQL provider with another remains an environment/configuration change instead of an application rewrite.
+
+## 4) Migration strategy and provider-agnostic assumptions
 
 ### Migration strategy
 
@@ -44,7 +52,7 @@ To stay portable, schema and queries should assume only common PostgreSQL behavi
 - Keep timezone semantics in application/domain helpers and UTC storage policy.
 - Keep id generation strategy deterministic and provider-neutral.
 
-## 4) Environment strategy centered on `DATABASE_URL`
+## 5) Environment strategy centered on `DATABASE_URL`
 
 `DATABASE_URL` is the single required runtime contract.
 
@@ -58,7 +66,7 @@ Operational guidance:
 - Validate `DATABASE_URL` at startup and fail fast with actionable errors.
 - Document SSL/connection-pool differences per provider as deployment notes rather than code forks.
 
-## 5) Portability checklist
+## 6) Portability checklist
 
 - `DATABASE_URL` is present and validated.
 - Drizzle client initialization is centralized.

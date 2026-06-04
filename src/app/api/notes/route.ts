@@ -15,7 +15,7 @@ import {
 import {
   assertAuthorizedUserId,
   requireAuthenticatedUser,
-} from "@/lib/api/identity";
+} from "@/lib/identity/authentication";
 
 const getQuerySchema = z
   .object({

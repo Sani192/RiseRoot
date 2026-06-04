@@ -3,20 +3,34 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/notes" }));
-vi.mock("@/features/selected-date-context", () => ({ useSelectedDate: () => ({ selectedDate: "2026-05-24", setSelectedDate: vi.fn() }) }));
+vi.mock("@/features/selected-date-context", () => ({
+  useSelectedDate: () => ({
+    selectedDate: "2026-05-24",
+    setSelectedDate: vi.fn(),
+  }),
+}));
 
 import { AppShell } from "@/components/layout/app-shell";
 import OnboardingPage from "@/app/onboarding/page";
 
 describe("mobile layout regressions", () => {
   it("applies keyboard-safe and horizontal-overflow guards at narrow viewport widths", () => {
-    Object.defineProperty(window, "innerWidth", { configurable: true, value: 320 });
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 320,
+    });
 
-    const { container } = render(<AppShell><div>content</div></AppShell>);
+    const { container } = render(
+      <AppShell>
+        <div>content</div>
+      </AppShell>,
+    );
 
     const safeRegion = container.querySelector(".rr-keyboard-safe-scroll");
     expect(safeRegion?.className).toContain("min-w-0");
-    const nav = screen.getByRole("navigation", { name: /primary app navigation/i });
+    const nav = screen.getByRole("navigation", {
+      name: /primary app navigation/i,
+    });
     expect(nav.className).toContain("inset-x-0");
   });
 

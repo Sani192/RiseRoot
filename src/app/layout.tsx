@@ -38,7 +38,9 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body><SelectedDateProvider>{children}</SelectedDateProvider></body>
+      <body>
+        <SelectedDateProvider>{children}</SelectedDateProvider>
+      </body>
     </html>
   );
 }

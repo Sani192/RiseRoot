@@ -7,7 +7,7 @@ const { repo } = vi.hoisted(() => ({
 vi.mock("@/repositories", () => ({ noteRepository: repo }));
 
 import { GET, PUT } from "@/app/api/notes/route";
-import { localDevUserIdEnvKey } from "@/lib/api/identity";
+import { localDevUserIdEnvKey } from "@/lib/identity/authentication";
 
 describe("notes API contract", () => {
   beforeEach(() => {
